@@ -1,0 +1,26 @@
+# Basic set-up steps
+1. Install the postgreSQL packages
+2. sudo -i -u postgres
+3. createuser --interactive # ident authentication => userX (both as postgresql role and unix user)
+4. createdb userX # by default postgreSQL expects there to be a database with the same name as the user
+5. logout
+6. sudo vim /etc/postgresql/10/main/pg_hba.conf # we need to set up a password for the postgreSQL(not UNIX) user we've created
+7. Add the following lines and save:
+	local all postgres peer
+	local userX userX peer
+8. sudo service postgresql restart
+9. sudo -i -u userX
+10. psql
+11. ALTER USER userX PASSWORD 'userX_postgreSQL_password';
+12. sudo vim /etc/postgresql/10/main/pg_hba.conf 
+13. delete the lines you've written before
+14. sudo service psotgresql restart
+
+# psql commands
+* >psql -d dataB 	# current user connects to dataB instead of his default database
+* =# \d 		# lists the relations in the current database
+* =# \dt		# lists only the tables in the current database, without the sequences
+* =# \l 		# lists the databases
+* sql instructions; example: 'SELECT * FROM tableName;'
+* =# \q			# exit the postgreSQL prompt
+* =# \d+ tableName	# lists the columns (header) of the table
