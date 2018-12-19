@@ -6,7 +6,8 @@ from sqlalchemy.ext.declarative import declarative_base
 import datetime
 
 # Underlying SQLAlchemy Engine object for the database connection
-engine = create_engine('postgresql://webdiffcrawler:clnr@localhost/webdiffcrawler', echo = True)
+# Insert DB credentials here
+engine = create_engine('postgresql://webdiffcrawler:somepassword@localhost/webdiffcrawler', echo = True)
 
 # Session factory class. Will be used to create session objects that are needed for communicating with the database
 Session = sessionmaker(bind=engine)

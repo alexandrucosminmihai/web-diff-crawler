@@ -24,3 +24,4 @@
 * sql instructions; example: 'SELECT * FROM tableName;'
 * =# \q			# exit the postgreSQL prompt
 * =# \d+ tableName	# lists the columns (header) of the table
+
