@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+    {{ super() }}
+    - Modify Crawling Rules
+{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Add or delete crawling rules</h1>
+</div>
+
+<div class="row">
+    <h2>
+        Existing crawling rules:
+    </h2>
+    <div class="mytable">
+        <table class="table table-hover table-responsive">
+            <thead>
+                <th scope="col">ID</th>
+                <th scope="col">Webpage</th>
+                <th scope="col">Selector</th>
+                <th scope="col">Delete</th>
+                <th scope="col">Check</th>
+            </thead>
+            <tbody>
+                {% for rule in crawlingRules %}
+                    <tr>
+                        <th scope="row">{{rule['id_crawlingrules']}}</th>
+                        <td>{{rule['address']}}</td>
+                        <td>{{rule['selectionrule']}}</td>
+                        <td>TODO: Delete Button</td>
+                        <td>TODO: Check Box</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <h2>
+        Add a new crawling rule:
+    </h2>
+    {{ wtf.quick_form(crawlingRuleForm) }}
+</div>
+
+{% endblock %}
