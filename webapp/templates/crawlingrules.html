@@ -22,16 +22,29 @@
                 <th scope="col">Webpage</th>
                 <th scope="col">Selector</th>
                 <th scope="col">Delete</th>
-                <th scope="col">Check</th>
+                <th scope="col">
+                    <form id="deleteChecked" action="{{url_for('deleteCrawlingRules')}}" method="POST">
+                        <button type="submit">Delete checked</button>
+                    </form>
+                </th>
             </thead>
             <tbody>
                 {% for rule in crawlingRules %}
                     <tr>
-                        <th scope="row">{{rule['id_crawlingrules']}}</th>
+                        <td>{{rule['id_crawlingrules']}}</td>
                         <td>{{rule['address']}}</td>
                         <td>{{rule['selectionrule']}}</td>
-                        <td>TODO: Delete Button</td>
-                        <td>TODO: Check Box</td>
+                        <td>
+                            <form action="{{url_for('deleteACrawlingRule')}}" method="POST">
+                                <input id="deleteCrawlingRule" name="deleteCrawlingRuleId" type="hidden"
+                                       value="{{rule['id_crawlingrules']}}">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                        <td>
+                            <input form="deleteChecked" type="checkbox" name='delete_checkbox'
+                                   value = "{{rule['id_crawlingrules']}}">
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -43,7 +56,7 @@
     <h2>
         Add a new crawling rule:
     </h2>
-    {{ wtf.quick_form(crawlingRuleForm) }}
+    {{ wtf.quick_form(crawlingRuleForm, action=url_for('crawlingRules')) }}
 </div>
 
 {% endblock %}

@@ -32,5 +32,5 @@ class Notifications(Base):
     def __repr__(self):
         return "<Notification(id_notifications='%s', address='%s', matchingrule='%s', modifytime='%s', " \
                "content='%s', recipients='%s', ackers='%s')>" % (self.id_notifications, self.address,
-                                                                 self.matchingrulerule, self.modifytime, self.content,
+                                                                 self.matchingrule, self.modifytime, self.content,
                                                                  self.recipients, self.ackers)

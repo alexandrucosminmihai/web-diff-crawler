@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ super() }}
+    - Notifications
+{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Notifications</h1>
+</div>
+
+<div class="row">
+    <div class="mytable">
+        <table class="table table-hover table-responsive">
+            <thead>
+                <th scope="col">ID</th>
+                <th scope="col">Webpage</th>
+                <th scope="col">Selector</th>
+                <th scope="col">Time</th>
+                <th scope="col">Acknowledge</th>
+                <th scope="col">
+                    <form id="ackChecked" action="{{url_for('ackNotifications')}}" method="POST">
+                        <button type="submit">Acknowledge checked</button>
+                    </form>
+                </th>
+            </thead>
+            <tbody>
+                {% for notif in notifications %}
+                    <tr>
+                        <td>{{notif['id_notifications']}}</td>
+                        <td>{{notif['address']}}</td>
+                        <td>{{notif['matchingrule']}}</td>
+                        <td>{{notif['modifytime']}}</td>
+                        <td>
+                            <form action="{{url_for('ackANotification')}}" method="POST">
+                                <input id="ackNotification" name="ackNotificationId" type="hidden"
+                                       value="{{notif['id_notifications']}}">
+                                <button type="submit">Acknowledge</button>
+                            </form>
+                        </td>
+                        <td>
+                            <input form="ackChecked" type="checkbox" name='ack_checkbox'
+                                   value = "{{notif['id_notifications']}}">
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
