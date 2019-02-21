@@ -6,6 +6,21 @@
     - Modify Crawling Rules
 {% endblock %}
 
+{% block scripts %}
+    {{ super() }}
+    <script>
+        let iframeElement = $("#preview-iframe")
+        let addressInput = $(".form input[name=address]")
+        iframeElement.attr("src", addressInput.val()) // Take the initial value found in the form input
+        addressInput.on("input", function() {
+            console.log("addressInput changed")
+            iframeElement.attr("src", addressInput.val()) // Update the iframe src everytime the input changes
+            // iframeElement.attr("src", "test")
+
+        })
+    </script>
+{% endblock %}
+
 {% block page_content %}
 <div class="page-header">
     <h1>Add or delete crawling rules</h1>
@@ -56,7 +71,17 @@
     <h2>
         Add a new crawling rule:
     </h2>
-    {{ wtf.quick_form(crawlingRuleForm, action=url_for('crawlingRules')) }}
+</div>
+
+<div class="row">
+    <div class="col-lg-9 embed-responsive embed-responsive-16by9">
+        <iframe class="embed-responsive-item" id="preview-iframe" src="">
+
+        </iframe>
+    </div>
+    <div class="col-lg-3">
+        {{ wtf.quick_form(crawlingRuleForm, action=url_for('crawlingRules')) }}
+    </div>
 </div>
 
 {% endblock %}
