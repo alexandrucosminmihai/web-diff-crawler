@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Notif {{ notification['id_notifications'] }} - {{ notification['address'] }}
+{% endblock %}
+
+{% block page_content %}
+
+<div class="row">
+    <h1 class="col-lg-11">
+        Review notification id {{ notification['id_notifications'] }}
+    </h1>
+
+    <div class="col-lg-1">
+        <br>
+        <form action="{{url_for('ackANotification')}}" method="POST">
+            <input id="ackNotification" name="ackNotificationId" type="hidden"
+                   value="{{notification['id_notifications']}}">
+            <button class="btn btn-success" type="submit">Acknowledge</button>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

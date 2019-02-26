@@ -21,7 +21,7 @@
                 <th scope="col">Acknowledge</th>
                 <th scope="col">
                     <form id="ackChecked" action="{{url_for('ackNotifications')}}" method="POST">
-                        <button type="submit">Acknowledge checked</button>
+                        <button class="btn btn-success" type="submit">Acknowledge checked</button>
                     </form>
                 </th>
             </thead>
@@ -36,7 +36,7 @@
                             <form action="{{url_for('ackANotification')}}" method="POST">
                                 <input id="ackNotification" name="ackNotificationId" type="hidden"
                                        value="{{notif['id_notifications']}}">
-                                <button type="submit">Acknowledge</button>
+                                <button class="btn btn-success" type="submit">Acknowledge</button>
                             </form>
                         </td>
                         <td>

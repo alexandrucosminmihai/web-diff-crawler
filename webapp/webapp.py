@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, flash, request
+from flask import Flask, render_template, url_for, redirect, flash, request, abort
 
 # Flask extensions imports
 from flask_bootstrap import Bootstrap
@@ -72,6 +72,23 @@ def notifications():
         notifications.append(currNotif)
 
     return render_template('notifications.html', notifications=notifications)
+
+@app.route('/notifications/<id_notifications>')
+def reviewNotification(id_notifications):
+    notificationRow = dbSession.query(mappedClasses.Notifications).\
+        filter(mappedClasses.Notifications.id_notifications==id_notifications).first()
+
+    if notificationRow == None:
+        abort(404)
+
+    currNotif = dict()
+    currNotif['id_notifications'] = notificationRow.id_notifications
+    currNotif['address'] = notificationRow.address
+    currNotif['matchingrule'] = notificationRow.matchingrule
+    currNotif['modifytime'] = notificationRow.modifytime
+    currNotif['content'] = notificationRow.content
+
+    return render_template('review_notification.html', notification=currNotif)
 
 
 @app.route('/deletearule', methods=['POST'])

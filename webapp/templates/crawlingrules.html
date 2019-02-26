@@ -21,6 +21,22 @@
             // iframeElement.attr("src", "test")
 
         })
+
+        // CSS Selector generation for the clicked DOM element inside the iframe
+        selectorGenerator = new CssSelectorGenerator;
+        addressInput.on("click", function () {
+            console.log(iframeElement.contents());
+        })
+        /*
+        iframeElement.addEventListener('click', function (event) {
+          // Get reference to the element user clicked on
+          let element = event.target;
+          // Get unique CSS selector for that element
+          let selector = my_selector_generator.getSelector(element);
+
+          console.log('selector', selector);
+        });
+        */
     </script>
 {% endblock %}
 
@@ -79,10 +95,13 @@
 <div class="row">
     {{ wtf.quick_form(crawlingRuleForm, action=url_for('crawlingRules')) }}
 </div>
-
+<div class="row">
+    <h4>Webpage preview:</h4>
+</div>
 {% endblock %}
 
 {% block page_content2 %}
+
 <div class="row">
     <div class="col-lg-12 embed-responsive embed-responsive-16by9">
         <!-- <iframe class="embed-responsive-item" id="preview-website" is="x-frame-bypass" src=""></iframe> -->
