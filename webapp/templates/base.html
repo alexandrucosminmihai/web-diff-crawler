@@ -7,6 +7,7 @@
           type="image/x-icon">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}"
           type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 {% endblock %}
 
 {% block title %}WebDiffCrawler{% endblock %}
@@ -15,6 +16,7 @@
     {{ super() }}
     {{ moment.include_moment() }}
     <script type="text/javascript" src="../static/scripts/css-selector-generator.js"></script>
+    <script type="module" src="https://unpkg.com/x-frame-bypass"></script>
 {% endblock %}
 
 {% block navbar %}
@@ -41,7 +43,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid full-viewport-height">
     {% for message in get_flashed_messages() %}
     <div class="alert alert-warning">
         <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -49,6 +51,24 @@
     </div>
     {% endfor %}
 
-    {% block page_content %}{% endblock %}
+    <div class="container">
+    {% block page_content %}
+
+    {% endblock %}
+    </div>
+
+    <div class="container-fluid">
+        {% block page_content2 %}
+        {% endblock %}
+    </div>
+
+    {% block footer %}
+    <footer class="default-footer">
+        <p>WebDiffCrawler</p>
+        <p>
+            <a href="#">Top</a>
+        </p>
+    </footer>
+    {% endblock %}
 </div>
 {% endblock %}

@@ -9,12 +9,15 @@
 {% block scripts %}
     {{ super() }}
     <script>
-        let iframeElement = $("#preview-iframe")
-        let addressInput = $(".form input[name=address]")
-        iframeElement.attr("src", addressInput.val()) // Take the initial value found in the form input
+        let iframeElement = $("#preview-website");
+        let iframeElementParent = iframeElement.parent();
+        let addressInput = $(".form input[name=address]");
+        iframeElement.attr("src", addressInput.val()); // Take the initial value found in the form input
         addressInput.on("input", function() {
-            console.log("addressInput changed")
-            iframeElement.attr("src", addressInput.val()) // Update the iframe src everytime the input changes
+            console.log("addressInput changed");
+            iframeElement.attr("src", addressInput.val()); // Update the <embed> src everytime the input changes
+            iframeElement.detach();
+            iframeElementParent.append(iframeElement);
             // iframeElement.attr("src", "test")
 
         })
@@ -74,14 +77,16 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-9 embed-responsive embed-responsive-16by9">
-        <iframe class="embed-responsive-item" id="preview-iframe" src="">
-
-        </iframe>
-    </div>
-    <div class="col-lg-3">
-        {{ wtf.quick_form(crawlingRuleForm, action=url_for('crawlingRules')) }}
-    </div>
+    {{ wtf.quick_form(crawlingRuleForm, action=url_for('crawlingRules')) }}
 </div>
 
+{% endblock %}
+
+{% block page_content2 %}
+<div class="row">
+    <div class="col-lg-12 embed-responsive embed-responsive-16by9">
+        <!-- <iframe class="embed-responsive-item" id="preview-website" is="x-frame-bypass" src=""></iframe> -->
+        <iframe id="preview-website" src=""></iframe>
+    </div>
+</div>
 {% endblock %}

@@ -99,7 +99,9 @@ def deleteCrawlingRules():
 @app.route('/crawlingrules', methods=['GET', 'POST'])
 def crawlingRules():
     # Create the form to be rendered
-    crawlingRuleForm = webapp.forms.CrawlingRuleForm(address="https://en.wikipedia.org/wiki/Internet")
+    # crawlingRuleForm = webapp.forms.CrawlingRuleForm(address="https://en.wikipedia.org/wiki/Internet")
+    crawlingRuleForm = \
+        webapp.forms.CrawlingRuleForm(address="https://www.cjmaramures.ro/activitate/comunicare/comunicate-de-presa")
 
     address = None
     selector = None

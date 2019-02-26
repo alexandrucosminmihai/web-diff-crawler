@@ -37,7 +37,9 @@ class webDiffCrawler(scrapy.Spider):
         oldContent = response.meta["content"]
 
         self.sequenceMatcher.set_seqs(currContent, oldContent)
-        operations = self.sequenceMatcher.get_opcodes()
+        operations = []
+        if oldContent:
+            operations = self.sequenceMatcher.get_opcodes()
 
         if len(operations) == 1 and operations[0][0] == 'equal':
             self.log("The content for id_crawlingrules=" + str(response.meta["id_crawlingrules"]) + " hasn't changed",
