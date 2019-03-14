@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
           integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js">
 {% endblock %}
 
 {% block title %}WebDiffCrawler{% endblock %}
@@ -19,6 +20,11 @@
     {{ moment.include_moment() }}
     <script type="text/javascript" src="../static/scripts/css-selector-generator.js"></script>
     <script type="module" src="https://unpkg.com/x-frame-bypass"></script>
+    <script>
+        $(function () {
+          $('[data-toggle="popover"]').popover()
+        })
+    </script>
 {% endblock %}
 
 {% block navbar %}

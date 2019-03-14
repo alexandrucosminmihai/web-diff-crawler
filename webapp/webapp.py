@@ -135,11 +135,13 @@ def crawlingRules():
         if crawlingRuleForm.validate_on_submit():
             address = request.form['address']
             selector = request.form['selector']
+            description = request.form['description']
 
             newCrawlingRule = mappedClasses.Crawlingrules(address=address, selectionrule=selector,
                                                           lastmodifytime=datetime.datetime.now(),
                                                           contributor='testUser',
-                                                          content='<~Empty~>')
+                                                          content='<~Empty~>',
+                                                          description=description)
             dbSession.add(newCrawlingRule)
             dbSession.commit()
 
@@ -158,6 +160,7 @@ def crawlingRules():
         currRule['id_crawlingrules'] = crawlingRule.id_crawlingrules
         currRule['address'] = crawlingRule.address
         currRule['selectionrule'] = crawlingRule.selectionrule
+        currRule['description'] = crawlingRule.description
         rules.append(currRule)
 
     return render_template('crawlingrules.html', crawlingRuleForm=crawlingRuleForm, crawlingRules=rules)

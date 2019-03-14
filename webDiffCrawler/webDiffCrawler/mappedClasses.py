@@ -11,6 +11,7 @@ class Crawlingrules(Base):
     selectionrule = Column(String)
     lastmodifytime = Column(TIMESTAMP(True))
     contributor = Column(String)
+    description = Column(String)
     content = Column(String)
 
     def __repr__(self):

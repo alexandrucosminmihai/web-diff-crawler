@@ -64,7 +64,12 @@
             </thead>
             <tbody>
                 {% for rule in crawlingRules %}
+                    {% if rule['description'] %}
+                    <tr data-toggle="popover" title="Rule description" data-content="{{ rule['description'] }}"
+                        data-trigger = "hover" data-placement="top">
+                    {% else %}
                     <tr>
+                    {% endif %}
                         <td>{{rule['id_crawlingrules']}}</td>
                         <td>{{rule['address']}}</td>
                         <td>{{rule['selectionrule']}}</td>
