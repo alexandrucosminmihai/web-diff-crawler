@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 import webapp.forms
 import datetime
 import sys
+import json
 
 import webDiffCrawler.webDiffCrawler.mappedClasses as mappedClasses
 
@@ -67,7 +68,8 @@ def notifications():
         currNotif = dict()
         currNotif['id_notifications'] = notif.id_notifications
         currNotif['address'] = notif.address
-        currNotif['matchingrule'] = notif.matchingrule
+        currNotif['matchingrule'] = dbSession.query(mappedClasses.Crawlingrules).\
+            filter_by(id_crawlingrules=notif.id_matchingrule).first().selectionrule
         currNotif['modifytime'] = notif.modifytime
         notifications.append(currNotif)
 
@@ -84,9 +86,13 @@ def reviewNotification(id_notifications):
     currNotif = dict()
     currNotif['id_notifications'] = notificationRow.id_notifications
     currNotif['address'] = notificationRow.address
-    currNotif['matchingrule'] = notificationRow.matchingrule
+    currNotif['matchingrule'] = dbSession.query(mappedClasses.Crawlingrules).\
+        filter_by(id_crawlingrules=notificationRow.id_matchingrule).first().selectionrule
     currNotif['modifytime'] = notificationRow.modifytime
-    currNotif['content'] = notificationRow.content
+    currNotif['currcontent'] = notificationRow.currcontent
+    currNotif['oldcontent'] = notificationRow.oldcontent
+    currNotif['changes'] = notificationRow.changes # Keep the changes in the json format, as given by the database
+    # currNotif['changes'] = json.loads(notificationRow.changes)
 
     return render_template('review_notification.html', notification=currNotif)
 
