@@ -3,6 +3,8 @@ import scrapy
 import difflib
 import logging
 import datetime
+import json
+import html
 
 # SQLAclhemy related imports
 from .. import mappedClasses
@@ -33,10 +35,15 @@ class webDiffCrawler(scrapy.Spider):
         return startRequests
 
     def parse(self, response):
-        currContent = response.css(response.meta["selectionrule"]).extract_first()
+        currContent = response.css(response.meta["selectionrule"]).extract_first() # Extract the content using the rule
+        currContent = html.escape(currContent)
+        currContent = currContent.encode('unicode-escape').decode()
+        self.log("currContent = " + currContent)
         oldContent = response.meta["content"]
+        # oldContent = oldContent.encode('unicode-escape').decode()
+        self.log("oldContent = " + oldContent)
 
-        self.sequenceMatcher.set_seqs(currContent, oldContent)
+        self.sequenceMatcher.set_seqs(oldContent, currContent)
         operations = []
         if oldContent:
             operations = self.sequenceMatcher.get_opcodes()
@@ -49,11 +56,14 @@ class webDiffCrawler(scrapy.Spider):
                      " has changed => New notification issued", logging.INFO)
 
             # Create a new notification and add it to the 'notifications' table
-            recipients = ["testUser"] # TODO: get all the users from a possibly already existing users database
+            recipients = ["testUser"]
+            # id_notifications | address | matchingrule | id_matchingrule | modifytime | currcontent | oldcontent | changes | recipients | ackers
             newNotification = mappedClasses.Notifications(address=response.meta["address"],
-                                                          matchingrule=response.meta["selectionrule"],
+                                                          id_matchingrule=response.meta["id_crawlingrules"],
                                                           modifytime=datetime.datetime.now(),
-                                                          content=str(operations), recipients=recipients, ackers=[])
+                                                          currcontent=currContent,
+                                                          oldcontent=oldContent,
+                                                          changes=json.dumps(operations), recipients=recipients, ackers=[])
             self.session.add(newNotification)
 
             crawlingRule = self.session.query(mappedClasses.Crawlingrules).\
