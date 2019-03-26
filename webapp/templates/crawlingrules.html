@@ -53,7 +53,7 @@
         <table class="table table-hover table-responsive">
             <thead>
                 <th scope="col">ID</th>
-                <th scope="col">Webpage</th>
+                <th scope="col">Description</th>
                 <th scope="col">Selector</th>
                 <th scope="col">Delete</th>
                 <th scope="col">
@@ -65,13 +65,13 @@
             <tbody>
                 {% for rule in crawlingRules %}
                     {% if rule['description'] %}
-                    <tr data-toggle="popover" title="Rule description" data-content="{{ rule['description'] }}"
+                    <tr data-toggle="popover" title="Website" data-content="<a href = {{ rule['address'] }}> {{ rule['address']}} </a>"
                         data-trigger = "hover" data-placement="top">
                     {% else %}
                     <tr>
                     {% endif %}
                         <td>{{rule['id_crawlingrules']}}</td>
-                        <td>{{rule['address']}}</td>
+                        <td>{{rule['description']}}</td>
                         <td>{{rule['selectionrule']}}</td>
                         <td>
                             <form action="{{url_for('deleteACrawlingRule')}}" method="POST">

@@ -15,7 +15,7 @@
         <table class="table table-hover table-responsive">
             <thead>
                 <th scope="col">ID</th>
-                <th scope="col">Webpage</th>
+                <th scope="col">Description</th>
                 <th scope="col">Selector</th>
                 <th scope="col">Time</th>
                 <th scope="col"></th>
@@ -30,7 +30,7 @@
                 {% for notif in notifications %}
                     <tr>
                         <td>{{notif['id_notifications']}}</td>
-                        <td>{{notif['address']}}</td>
+                        <td>{{notif['ruleDescription']}}</td>
                         <td>{{notif['matchingrule']}}</td>
                         <td>{{notif['modifytime']}}</td>
                         <td>

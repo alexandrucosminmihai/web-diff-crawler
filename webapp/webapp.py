@@ -62,14 +62,17 @@ def ackNotifications():
 @app.route('/notifications')
 def notifications():
     notifications = []
+    matchingRule = None
     for notif in \
             dbSession.query(mappedClasses.Notifications).filter(mappedClasses.Notifications.ackers==[]).\
                     order_by(mappedClasses.Notifications.id_notifications.desc()):
+        matchingRule = dbSession.query(mappedClasses.Crawlingrules).\
+            filter_by(id_crawlingrules=notif.id_matchingrule).first()
         currNotif = dict()
         currNotif['id_notifications'] = notif.id_notifications
         currNotif['address'] = notif.address
-        currNotif['matchingrule'] = dbSession.query(mappedClasses.Crawlingrules).\
-            filter_by(id_crawlingrules=notif.id_matchingrule).first().selectionrule
+        currNotif['matchingrule'] = matchingRule.selectionrule
+        currNotif['ruleDescription'] = matchingRule.description
         currNotif['modifytime'] = notif.modifytime
         notifications.append(currNotif)
 
@@ -155,7 +158,8 @@ def crawlingRules():
         return redirect(url_for('crawlingRules'))
 
     rules = []
-    for crawlingRule in dbSession.query(mappedClasses.Crawlingrules).all():
+    for crawlingRule in dbSession.query(mappedClasses.Crawlingrules)\
+            .order_by(mappedClasses.Crawlingrules.id_crawlingrules.desc()):
         currRule = dict()
         currRule['id_crawlingrules'] = crawlingRule.id_crawlingrules
         currRule['address'] = crawlingRule.address
