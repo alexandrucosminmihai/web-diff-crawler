@@ -20,31 +20,36 @@ class webDiffCrawler(scrapy.Spider):
     engine = create_engine('postgresql://webdiffcrawler:clnr@localhost/webdiffcrawler', echo=True)
     Session = sessionmaker(bind=engine)
 
+    DAILY_SCHEDULE_BEGIN = datetime.time(hour=0, minute=0)
+    DAILY_SCHEDULE_END = datetime.time(hour=23, minute=59)
+
     def start_requests(self):
+        startRequests = []
+        currDateTime = datetime.datetime.now()
+
+        # If the crawler is not meant to run at this time, don't do anything
+        if not (webDiffCrawler.DAILY_SCHEDULE_BEGIN <= currDateTime.time() <= webDiffCrawler.DAILY_SCHEDULE_END):
+            return startRequests
+
         self.sequenceMatcher = difflib.SequenceMatcher()
         self.session = webDiffCrawler.Session()
-        startRequests = []
+
 
         for crawlingRule in self.session.query(mappedClasses.Crawlingrules).all():
             startRequests.append(scrapy.Request(url=crawlingRule.address, callback=self.parse))
-            # startRequests[-1].meta["id_crawlingrules"] = crawlingRule.id_crawlingrules
-            # startRequests[-1].meta["address"] = crawlingRule.address
-            # startRequests[-1].meta["selectionrule"] = crawlingRule.selectionrule
-            # startRequests[-1].meta["content"] = crawlingRule.content
             startRequests[-1].meta["crawlingRuleEntry"] = crawlingRule
 
-        # for currRequest in startRequests:
-            # yield currRequest
         return startRequests
 
     def parse(self, response):
         global epsilon
+
         crawlingRule = response.meta["crawlingRuleEntry"]
+
+        currDateTime = datetime.datetime.now()
 
         isFirstCrawl = True # Assume this is the first time we check this crawling rule
         lastCrawlTimestamp = 0
-
-        currDateTime = datetime.datetime.now()
 
         if crawlingRule.lastcrawltime: # The rule was used before
             isFirstCrawl = False
