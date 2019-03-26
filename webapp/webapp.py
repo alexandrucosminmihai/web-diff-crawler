@@ -71,9 +71,13 @@ def notifications():
         currNotif = dict()
         currNotif['id_notifications'] = notif.id_notifications
         currNotif['address'] = notif.address
-        currNotif['matchingrule'] = matchingRule.selectionrule
-        currNotif['ruleDescription'] = matchingRule.description
         currNotif['modifytime'] = notif.modifytime
+        if matchingRule:
+            currNotif['matchingrule'] = matchingRule.selectionrule
+            currNotif['ruleDescription'] = matchingRule.description
+        else:
+            currNotif['matchingrule'] = "Not available"
+            currNotif['ruleDescription'] = "Not available"
         notifications.append(currNotif)
 
     return render_template('notifications.html', notifications=notifications)
@@ -82,6 +86,8 @@ def notifications():
 def reviewNotification(id_notifications):
     notificationRow = dbSession.query(mappedClasses.Notifications).\
         filter(mappedClasses.Notifications.id_notifications==id_notifications).first()
+    matchingRule = dbSession.query(mappedClasses.Crawlingrules).\
+        filter_by(id_crawlingrules=notificationRow.id_matchingrule).first()
 
     if notificationRow == None:
         abort(404)
@@ -89,8 +95,10 @@ def reviewNotification(id_notifications):
     currNotif = dict()
     currNotif['id_notifications'] = notificationRow.id_notifications
     currNotif['address'] = notificationRow.address
-    currNotif['matchingrule'] = dbSession.query(mappedClasses.Crawlingrules).\
-        filter_by(id_crawlingrules=notificationRow.id_matchingrule).first().selectionrule
+    if matchingRule:
+        currNotif['matchingrule'] = matchingRule.selectionrule
+    else:
+        currNotif['matchingrule'] = "Not available"
     currNotif['modifytime'] = notificationRow.modifytime
     currNotif['currcontent'] = notificationRow.currcontent
     currNotif['oldcontent'] = notificationRow.oldcontent
@@ -139,11 +147,18 @@ def crawlingRules():
             address = request.form['address']
             selector = request.form['selector']
             description = request.form['description']
+            crawlPeriodUnit = request.form['crawlPeriodUnitType']
+            crawlPeriod = request.form['crawlPeriod']
+
+            # The crawlPeriod is stored as number of minutes in the database
+            if crawlPeriodUnit == 'hours':
+                crawlPeriod *= 60
 
             newCrawlingRule = mappedClasses.Crawlingrules(address=address, selectionrule=selector,
                                                           lastmodifytime=datetime.datetime.now(),
                                                           contributor='testUser',
                                                           content='<~Empty~>',
+                                                          crawlperiod=crawlPeriod,
                                                           description=description)
             dbSession.add(newCrawlingRule)
             dbSession.commit()

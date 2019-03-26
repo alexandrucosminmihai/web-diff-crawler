@@ -10,6 +10,8 @@ class Crawlingrules(Base):
     address = Column(String)
     selectionrule = Column(String)
     lastmodifytime = Column(TIMESTAMP(True))
+    lastcrawltime = Column(TIMESTAMP(True))
+    crawlperiod = Column(Integer, nullable=False)
     contributor = Column(String)
     description = Column(String)
     content = Column(String)

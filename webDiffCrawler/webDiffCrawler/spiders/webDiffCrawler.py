@@ -11,6 +11,8 @@ from .. import mappedClasses
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+epsilon = 2
+
 class webDiffCrawler(scrapy.Spider):
     name = "webDiffCrawler"
 
@@ -25,51 +27,82 @@ class webDiffCrawler(scrapy.Spider):
 
         for crawlingRule in self.session.query(mappedClasses.Crawlingrules).all():
             startRequests.append(scrapy.Request(url=crawlingRule.address, callback=self.parse))
-            startRequests[-1].meta["id_crawlingrules"] = crawlingRule.id_crawlingrules
-            startRequests[-1].meta["address"] = crawlingRule.address
-            startRequests[-1].meta["selectionrule"] = crawlingRule.selectionrule
-            startRequests[-1].meta["content"] = crawlingRule.content
+            # startRequests[-1].meta["id_crawlingrules"] = crawlingRule.id_crawlingrules
+            # startRequests[-1].meta["address"] = crawlingRule.address
+            # startRequests[-1].meta["selectionrule"] = crawlingRule.selectionrule
+            # startRequests[-1].meta["content"] = crawlingRule.content
+            startRequests[-1].meta["crawlingRuleEntry"] = crawlingRule
 
         # for currRequest in startRequests:
             # yield currRequest
         return startRequests
 
     def parse(self, response):
-        currContent = response.css(response.meta["selectionrule"]).extract_first() # Extract the content using the rule
-        currContent = html.escape(currContent)
-        currContent = currContent.encode('unicode-escape').decode()
-        self.log("currContent = " + currContent)
-        oldContent = response.meta["content"]
-        # oldContent = oldContent.encode('unicode-escape').decode()
-        self.log("oldContent = " + oldContent)
+        global epsilon
+        crawlingRule = response.meta["crawlingRuleEntry"]
 
-        self.sequenceMatcher.set_seqs(oldContent, currContent)
-        operations = []
-        if oldContent:
-            operations = self.sequenceMatcher.get_opcodes()
+        isFirstCrawl = True # Assume this is the first time we check this crawling rule
+        lastCrawlTimestamp = 0
 
-        if len(operations) == 1 and operations[0][0] == 'equal':
-            self.log("The content for id_crawlingrules=" + str(response.meta["id_crawlingrules"]) + " hasn't changed",
-                     logging.INFO)
+        currDateTime = datetime.datetime.now()
+
+        if crawlingRule.lastcrawltime: # The rule was used before
+            isFirstCrawl = False
+            lastCrawlTimestamp = crawlingRule.lastcrawltime.timestamp()
+
+        deltaTimestamp = currDateTime.timestamp() - lastCrawlTimestamp + epsilon
+        self.log("currDateTime=" + str(currDateTime), logging.INFO)
+        if isFirstCrawl:
+            self.log("lastcrawltime=Never", logging.INFO)
         else:
-            self.log("The content for id_crawlingrules=" + str(response.meta["id_crawlingrules"]) +
-                     " has changed => New notification issued", logging.INFO)
+            self.log("lastcrawltime=" + str(crawlingRule.lastcrawltime), logging.INFO)
+        self.log("deltaTimestamp+epsilon=" + str(deltaTimestamp), logging.INFO)
 
-            # Create a new notification and add it to the 'notifications' table
-            recipients = ["testUser"]
-            # id_notifications | address | matchingrule | id_matchingrule | modifytime | currcontent | oldcontent | changes | recipients | ackers
-            newNotification = mappedClasses.Notifications(address=response.meta["address"],
-                                                          id_matchingrule=response.meta["id_crawlingrules"],
-                                                          modifytime=datetime.datetime.now(),
-                                                          currcontent=currContent,
-                                                          oldcontent=oldContent,
-                                                          changes=json.dumps(operations), recipients=recipients, ackers=[])
-            self.session.add(newNotification)
+        # Check whether the wait interval between two consecutive crawls has passed
+        if (deltaTimestamp / 60) >= crawlingRule.crawlperiod:
+            crawlingRule.lastcrawltime = currDateTime # A new crawl will begin
 
-            crawlingRule = self.session.query(mappedClasses.Crawlingrules).\
-                filter_by(id_crawlingrules=response.meta["id_crawlingrules"]).first()
-            crawlingRule.content = currContent
-            crawlingRule.lastmodifytime = datetime.datetime.now()
+            currContent = response.css(crawlingRule.selectionrule).extract_first() # Extract the content using the rule
+            currContent = html.escape(currContent)
+            currContent = currContent.encode('unicode-escape').decode()
+            self.log("currContent = " + currContent)
+            oldContent = crawlingRule.content
+            # oldContent = oldContent.encode('unicode-escape').decode()
+            self.log("oldContent = " + oldContent)
+
+            if not isFirstCrawl:
+                # If there is some old content to compare the new content to
+                self.sequenceMatcher.set_seqs(oldContent, currContent)
+                operations = []
+                if oldContent:
+                    operations = self.sequenceMatcher.get_opcodes()
+
+                if len(operations) == 1 and operations[0][0] == 'equal':
+                    self.log("The content for id_crawlingrules=" + str(crawlingRule.id_crawlingrules)
+                             + " hasn't changed so no new Notification was issued", logging.INFO)
+                else:
+                    self.log("The content for id_crawlingrules=" + str(crawlingRule.id_crawlingrules) +
+                             " has changed => New notification issued", logging.INFO)
+
+                    # Create a new notification and add it to the 'notifications' table
+                    recipients = ["testUser"]
+                    # id_notifications | address | matchingrule | id_matchingrule | modifytime | currcontent | oldcontent | changes | recipients | ackers
+                    newNotification = mappedClasses.Notifications(address=crawlingRule.address,
+                                                                  id_matchingrule=crawlingRule.id_crawlingrules,
+                                                                  modifytime=crawlingRule.lastcrawltime,
+                                                                  currcontent=currContent,
+                                                                  oldcontent=oldContent,
+                                                                  changes=json.dumps(operations), recipients=recipients, ackers=[])
+                    self.session.add(newNotification)
+
+                    crawlingRule.content = currContent
+                    crawlingRule.lastmodifytime = datetime.datetime.now()
+            else:
+                # This is the first content we ever get for this rule
+                self.log("This is the first crawl for id_crawlingrules=" + str(crawlingRule.id_crawlingrules)
+                         + " so no new Notification was issued", logging.INFO)
+                crawlingRule.content = currContent
+                crawlingRule.lastmodifytime = datetime.datetime.now()
+
             self.session.add(crawlingRule)
-
             self.session.commit()

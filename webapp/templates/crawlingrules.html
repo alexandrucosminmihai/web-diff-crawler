@@ -65,13 +65,25 @@
             <tbody>
                 {% for rule in crawlingRules %}
                     {% if rule['description'] %}
-                    <tr data-toggle="popover" title="Website" data-content="<a href = {{ rule['address'] }}> {{ rule['address']}} </a>"
-                        data-trigger = "hover" data-placement="top">
+                    <!--<tr data-toggle="popover" title="Website" data-content="<a href = {{ rule['address'] }}> {{ rule['address']}} </a>"
+                        data-trigger = "hover" data-placement="top"> -->
+                    <tr>
                     {% else %}
                     <tr>
                     {% endif %}
                         <td>{{rule['id_crawlingrules']}}</td>
-                        <td>{{rule['description']}}</td>
+                        {% if rule['description'] %}
+                        <td>
+                                <span data-toggle="popover" title="Website"
+                                      data-content="<a href = {{ rule['address'] }}> {{ rule['address']}} </a>"
+                                      data-trigger = "hover" data-placement="top">
+                                    {{rule['description']}}
+                                </span>
+                        </td>
+                        {% else %}
+                            <td>{{rule['description']}}</td>
+                        {% endif %}
+
                         <td>{{rule['selectionrule']}}</td>
                         <td>
                             <form action="{{url_for('deleteACrawlingRule')}}" method="POST">
