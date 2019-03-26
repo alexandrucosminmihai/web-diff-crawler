@@ -72,6 +72,7 @@ def notifications():
         currNotif['id_notifications'] = notif.id_notifications
         currNotif['address'] = notif.address
         currNotif['modifytime'] = notif.modifytime
+        currNotif['modifytimestr'] = notif.modifytime.strftime("%a, %d-%m-%Y, %H:%M")
         if matchingRule:
             currNotif['matchingrule'] = matchingRule.selectionrule
             currNotif['ruleDescription'] = matchingRule.description
@@ -100,6 +101,7 @@ def reviewNotification(id_notifications):
     else:
         currNotif['matchingrule'] = "Not available"
     currNotif['modifytime'] = notificationRow.modifytime
+    currNotif['modifytimestr'] = notificationRow.modifytime.strftime("%A, %d-%m-%Y, %H:%M")
     currNotif['currcontent'] = notificationRow.currcontent
     currNotif['oldcontent'] = notificationRow.oldcontent
     currNotif['changes'] = notificationRow.changes # Keep the changes in the json format, as given by the database
