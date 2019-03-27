@@ -10,7 +10,7 @@ class CrawlingRuleForm(FlaskForm):
     selector = StringField('CSS selector', validators=[DataRequired()])
     description = StringField('Rule description')
     crawlPeriod = IntegerField('Crawling every', validators=[DataRequired()])
-    crawlPeriodUnitType = SelectField('Time unit', choices=[('hours', 'hours'), ('minutes', 'minutes')])
+    crawlPeriodUnitType = SelectField('Time unit', choices=[('minutes', 'minutes'), ('hours', 'hours')])
     submit = SubmitField('Add crawling rule')
 
     def validate(self):

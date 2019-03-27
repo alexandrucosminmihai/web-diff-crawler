@@ -55,6 +55,7 @@
                 <th scope="col">ID</th>
                 <th scope="col">Description</th>
                 <th scope="col">Selector</th>
+                <th scope="col">Last update</th>
                 <th scope="col">Delete</th>
                 <th scope="col">
                     <form id="deleteChecked" action="{{url_for('deleteCrawlingRules')}}" method="POST">
@@ -64,13 +65,7 @@
             </thead>
             <tbody>
                 {% for rule in crawlingRules %}
-                    {% if rule['description'] %}
-                    <!--<tr data-toggle="popover" title="Website" data-content="<a href = {{ rule['address'] }}> {{ rule['address']}} </a>"
-                        data-trigger = "hover" data-placement="top"> -->
                     <tr>
-                    {% else %}
-                    <tr>
-                    {% endif %}
                         <td>{{rule['id_crawlingrules']}}</td>
                         {% if rule['description'] %}
                         <td>
@@ -85,6 +80,7 @@
                         {% endif %}
 
                         <td>{{rule['selectionrule']}}</td>
+                        <td>{{rule['lastmodifytimestr']}}</td>
                         <td>
                             <form action="{{url_for('deleteACrawlingRule')}}" method="POST">
                                 <input id="deleteCrawlingRule" name="deleteCrawlingRuleId" type="hidden"

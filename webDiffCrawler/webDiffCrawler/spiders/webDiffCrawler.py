@@ -5,6 +5,7 @@ import logging
 import datetime
 import json
 import html
+from w3lib.html import remove_tags, remove_tags_with_content
 
 # SQLAclhemy related imports
 from .. import mappedClasses
@@ -20,8 +21,10 @@ class webDiffCrawler(scrapy.Spider):
     engine = create_engine('postgresql://webdiffcrawler:clnr@localhost/webdiffcrawler', echo=True)
     Session = sessionmaker(bind=engine)
 
+    # Crawler configurations
     DAILY_SCHEDULE_BEGIN = datetime.time(hour=0, minute=0)
     DAILY_SCHEDULE_END = datetime.time(hour=23, minute=59)
+    TEXT_ONLY = True
 
     def start_requests(self):
         startRequests = []
@@ -66,10 +69,17 @@ class webDiffCrawler(scrapy.Spider):
         # Check whether the wait interval between two consecutive crawls has passed
         if (deltaTimestamp / 60) >= crawlingRule.crawlperiod:
             crawlingRule.lastcrawltime = currDateTime # A new crawl will begin
+            selector = crawlingRule.selectionrule.replace('::text', '').strip()
 
-            currContent = response.css(crawlingRule.selectionrule).extract_first() # Extract the content using the rule
+            currContent = "".join(response.css(selector).extract())  # Extract all the content + tags using the selector
+
+            if webDiffCrawler.TEXT_ONLY or '::text' in crawlingRule.selectionrule:
+                # Ditch the script tags' content and then extract the text
+                currContent = remove_tags(remove_tags_with_content(currContent, ('script', )))
+
             currContent = html.escape(currContent)
-            currContent = currContent.encode('unicode-escape').decode()
+            currContent = currContent.strip()
+            currContent = currContent.encode('unicode-escape').decode()  # Escape special chars like \n \t
             self.log("currContent = " + currContent)
             oldContent = crawlingRule.content
             # oldContent = oldContent.encode('unicode-escape').decode()

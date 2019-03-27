@@ -55,7 +55,7 @@
 </div>
 
 <div class="row">
-    <div class="col-8 col-centered" id="new-content">
+    <div class="col-8 col-centered multiline" id="new-content">
 
     </div>
 </div>
@@ -65,7 +65,7 @@
 </div>
 
 <div class="row">
-    <div class="col-8 col-centered" id="old-content">
+    <div class="col-8 col-centered multiline" id="old-content">
 
     </div>
 </div>
@@ -88,8 +88,8 @@
         console.log(changes);
 
         // Escape \n
-        currcontent = currcontent.replace(/\n/g, "\\n");
-        oldcontent = oldcontent.replace(/\n/g, "\\n");
+        //currcontent = currcontent.replace(/\n/g, "\\n");
+        //oldcontent = oldcontent.replace(/\n/g, "\\n");
 
         console.log("oldcontent = " + oldcontent);
         console.log("currcontent = " + currcontent);
@@ -110,6 +110,7 @@
         colors["yellow"]["after"] = '</span>';
 
         // Mark the changes by coloring text
+        /*
         for (let i = 0; i < changes.length; ++i) {
             // Every change returned from difflib is a 5-tuple
             let currChange = changes[i];
@@ -159,6 +160,9 @@
                 oldcontentOffset += colors["red"]["before"].length + colors["red"]["after"].length;
             }
         }
+        */
+
+        // currcontent = currcontent.replace(/\r?\n/g, "<br />");
 
 
         let newContentContainer = document.getElementById('new-content');

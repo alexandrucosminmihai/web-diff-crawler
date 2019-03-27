@@ -90,7 +90,7 @@ def reviewNotification(id_notifications):
     matchingRule = dbSession.query(mappedClasses.Crawlingrules).\
         filter_by(id_crawlingrules=notificationRow.id_matchingrule).first()
 
-    if notificationRow == None:
+    if notificationRow is None:
         abort(404)
 
     currNotif = dict()
@@ -182,6 +182,8 @@ def crawlingRules():
         currRule['address'] = crawlingRule.address
         currRule['selectionrule'] = crawlingRule.selectionrule
         currRule['description'] = crawlingRule.description
+        currRule['lastymodifytime'] = crawlingRule.lastmodifytime
+        currRule['lastmodifytimestr'] = crawlingRule.lastmodifytime.strftime("%A, %d-%m-%Y, %H:%M")
         rules.append(currRule)
 
     return render_template('crawlingrules.html', crawlingRuleForm=crawlingRuleForm, crawlingRules=rules)
