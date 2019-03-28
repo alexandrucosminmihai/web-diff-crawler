@@ -1,4 +1,6 @@
 # webDiffCrawler
+## Note: this readme is outdated. A new one is coming soon.
+#### The core is the same, but some structure details have changed
 *webDiffCrawler* is a crawler that is meant to periodically check webpages or elements of webpages as instructed by entries in a *crawling rules* database table and generate notifications when it finds any difference between the old known version of the webpage/element and the newly scraped one.
 
 *webDiffCrawler* is based on the [Scrapy framework](https://docs.scrapy.org/en/latest/index.html) and, for the implementation in this repository, at the moment, it uses a [PostgreSQL](https://www.postgresql.org/) database and [SQLAlchemy](https://www.sqlalchemy.org/) to communicate with it, but it can be easily changed to work with any database system accepted by SQLAlchemy.
