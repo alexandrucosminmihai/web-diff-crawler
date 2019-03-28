@@ -5,7 +5,11 @@ import logging
 import datetime
 import json
 import html
-from w3lib.html import remove_tags, remove_tags_with_content
+import re
+from w3lib.html import remove_tags, remove_tags_with_content, remove_comments
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+import lxml
 
 # SQLAclhemy related imports
 from .. import mappedClasses
@@ -25,6 +29,14 @@ class webDiffCrawler(scrapy.Spider):
     DAILY_SCHEDULE_BEGIN = datetime.time(hour=0, minute=0)
     DAILY_SCHEDULE_END = datetime.time(hour=23, minute=59)
     TEXT_ONLY = True
+
+    # Convert relative URLs in HTML code to absolute URLs
+    def makeURLsAbsolute(self, baseURL, htmlContent):
+        soup = BeautifulSoup(htmlContent, "lxml")
+        for anchorTag in soup.find_all('a'):
+            anchorTag['href'] = urljoin(baseURL, anchorTag['href'])
+
+        return str(soup)
 
     def start_requests(self):
         startRequests = []
@@ -49,9 +61,11 @@ class webDiffCrawler(scrapy.Spider):
 
         crawlingRule = response.meta["crawlingRuleEntry"]
 
+        # Figure out if now is the time to crawl this rule and whether is the first crawl for the rule
         currDateTime = datetime.datetime.now()
 
         isFirstCrawl = True # Assume this is the first time we check this crawling rule
+        isFirstCrawl = False # TODO
         lastCrawlTimestamp = 0
 
         if crawlingRule.lastcrawltime: # The rule was used before
@@ -75,9 +89,30 @@ class webDiffCrawler(scrapy.Spider):
 
             if webDiffCrawler.TEXT_ONLY or '::text' in crawlingRule.selectionrule:
                 # Ditch the script tags' content and then extract the text
-                currContent = remove_tags(remove_tags_with_content(currContent, ('script', )))
+                self.log("Extracting the text from the HTML...", logging.INFO)
+                currContent = remove_tags(remove_tags_with_content(currContent, ('script', )), keep=('ul', 'ol', 'li', 'a', 'p', 'br'))
+                currContent = remove_comments(currContent)
 
-            currContent = html.escape(currContent)
+                # Inceput sandbox
+                # currContent = "".join(response.css(selector).extract())
+                # currContent = remove_tags(remove_tags_with_content(currContent, ('script', )), keep=('ul', 'ol', 'li', 'a', 'p', 'br'))
+                currContent = re.sub(r'\n+', r'\n', currContent) # Remove consecutive \n's
+                currContent = re.sub(r'\t+', r'\t', currContent) # Remove consecutive \t's
+                currContent = re.sub(r'(\n(\s)*\n)+', r'\n', currContent) # Replace consecutive \n's with whitespaces between them
+                currContent = re.sub(r'(\t(\s)*\t)+', r'\t', currContent) # Replace consecutive \t's with whitespaces between them
+                currContent = re.sub(r'(\n\t(\s)*)+', r'\n\t', currContent)
+                currContent = re.sub(r'(\t\n(\s)*)+', r'\t\n', currContent)
+                currContent = re.sub(r'>(\s)*<li', r'><li', currContent)
+                currContent = re.sub(r'>(\s)*<ul', r'><ul', currContent)
+                currContent = re.sub(r'>(\s)*<ol', r'><ol', currContent)
+                currContent = re.sub(r'>(\s)*<p', r'><p', currContent)
+                currContent = re.sub(r'>(\s)*</ul', r'></ul', currContent)
+                currContent = re.sub(r'>(\s)*</ol', r'></ol', currContent)
+                currContent = re.sub(r'>(\s)*</p', r'></p', currContent)
+                # Sfarsit sandbox
+
+            currContent = self.makeURLsAbsolute(response.url, currContent)  # Convert relative URLs to absolute URLs
+            # currContent = html.escape(currContent)
             currContent = currContent.strip()
             currContent = currContent.encode('unicode-escape').decode()  # Escape special chars like \n \t
             self.log("currContent = " + currContent)
