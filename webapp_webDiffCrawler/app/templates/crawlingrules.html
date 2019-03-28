@@ -58,7 +58,7 @@
                 <th scope="col">Last update</th>
                 <th scope="col">Delete</th>
                 <th scope="col">
-                    <form id="deleteChecked" action="{{url_for('deleteCrawlingRules')}}" method="POST">
+                    <form id="deleteChecked" action="{{url_for('.deleteCrawlingRules')}}" method="POST">
                         <button type="submit">Delete checked</button>
                     </form>
                 </th>
@@ -82,7 +82,7 @@
                         <td>{{rule['selectionrule']}}</td>
                         <td>{{rule['lastmodifytimestr']}}</td>
                         <td>
-                            <form action="{{url_for('deleteACrawlingRule')}}" method="POST">
+                            <form action="{{url_for('.deleteACrawlingRule')}}" method="POST">
                                 <input id="deleteCrawlingRule" name="deleteCrawlingRuleId" type="hidden"
                                        value="{{rule['id_crawlingrules']}}">
                                 <button type="submit">Delete</button>
@@ -106,7 +106,7 @@
 </div>
 
 <div class="row">
-    {{ wtf.quick_form(crawlingRuleForm, action=url_for('crawlingRules')) }}
+    {{ wtf.quick_form(crawlingRuleForm, action=url_for('.crawlingRules')) }}
 </div>
 <div class="row">
     <h4>Webpage preview:</h4>

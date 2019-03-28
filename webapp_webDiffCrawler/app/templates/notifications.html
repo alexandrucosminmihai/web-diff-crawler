@@ -21,7 +21,7 @@
                 <th scope="col"></th>
                 <th scope="col">Acknowledge</th>
                 <th scope="col">
-                    <form id="ackChecked" action="{{url_for('ackNotifications')}}" method="POST">
+                    <form id="ackChecked" action="{{url_for('.ackNotifications')}}" method="POST">
                         <button class="btn btn-success" type="submit">Acknowledge checked</button>
                     </form>
                 </th>
@@ -34,7 +34,7 @@
                         <td>{{notif['matchingrule']}}</td>
                         <td>{{notif['modifytimestr']}}</td>
                         <td>
-                            <form action="{{url_for('reviewNotification', id_notifications=notif['id_notifications'])}}"
+                            <form action="{{url_for('.reviewNotification', id_notifications=notif['id_notifications'])}}"
                                   method="GET">
                                 <button class="btn btn-info">
                                     <i class="fas fa-eye"></i>
@@ -42,7 +42,7 @@
                             </form>
                         </td>
                         <td>
-                            <form action="{{url_for('ackANotification')}}" method="POST">
+                            <form action="{{url_for('.ackANotification')}}" method="POST">
                                 <input id="ackNotification" name="ackNotificationId" type="hidden"
                                        value="{{notif['id_notifications']}}">
                                 <button class="btn btn-success" type="submit">Acknowledge</button>

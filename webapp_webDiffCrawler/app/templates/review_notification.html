@@ -13,7 +13,7 @@
 
     <div class="col-lg-1">
         <br>
-        <form action="{{url_for('ackANotification')}}" method="POST">
+        <form action="{{url_for('.ackANotification')}}" method="POST">
             <input id="ackNotification" name="ackNotificationId" type="hidden"
                    value="{{notification['id_notifications']}}">
             <button class="btn btn-success" type="submit">Acknowledge</button>
@@ -27,7 +27,7 @@
           <tbody>
             <tr>
                 <th scope="row">Address</th>
-                <td>{{ notification['address'] }}</td>
+                <td><a href="{{ notification['address'] }}">{{ notification['address'] }}</a></td>
             </tr>
             <tr>
                 <th scope="row">Crawling rule</th>
@@ -51,7 +51,7 @@
 -->
 
 <div class="row">
-    <h3>New content:</h3>
+    <h3><u>New content</u>:</h3>
 </div>
 
 <div class="row">
@@ -61,7 +61,7 @@
 </div>
 
 <div class="row">
-    <h3>Old content:</h3>
+    <h3><u>Old content</u>:</h3>
 </div>
 
 <div class="row">
