@@ -55,11 +55,12 @@
                 <th scope="col">ID</th>
                 <th scope="col">Description</th>
                 <th scope="col">Selector</th>
+                <th scope="col">Crawl every</th>
                 <th scope="col">Last update</th>
                 <th scope="col">Delete</th>
                 <th scope="col">
                     <form id="deleteChecked" action="{{url_for('.deleteCrawlingRules')}}" method="POST">
-                        <button type="submit">Delete checked</button>
+                        <button class="btn btn-danger" type="submit">Delete checked</button>
                     </form>
                 </th>
             </thead>
@@ -80,12 +81,13 @@
                         {% endif %}
 
                         <td>{{rule['selectionrule']}}</td>
+                        <td>{{rule['crawlperiodstr']}}</td>
                         <td>{{rule['lastmodifytimestr']}}</td>
                         <td>
                             <form action="{{url_for('.deleteACrawlingRule')}}" method="POST">
                                 <input id="deleteCrawlingRule" name="deleteCrawlingRuleId" type="hidden"
                                        value="{{rule['id_crawlingrules']}}">
-                                <button type="submit">Delete</button>
+                                <button class="btn btn-danger" type="submit">Delete</button>
                             </form>
                         </td>
                         <td>
