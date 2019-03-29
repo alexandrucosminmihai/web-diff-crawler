@@ -1,8 +1,26 @@
 # Classes mapped by SQLAlchemy to database tables
 from sqlalchemy import Column, Sequence, Integer, String, TIMESTAMP, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
+from werkzeug.security import generate_password_hash, check_password_hash
 
 Base = declarative_base()
+
+class Users(Base):
+    __tablename__ = 'users'
+    id_users = Column(Integer, Sequence('users_id_users_seq'), primary_key=True)
+    # secrettoken = Column(String) # Token used to grant registration
+    password_hash = Column(String(128))
+
+    @property
+    def password(self):
+        raise AttributeError('password is not readable')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Crawlingrules(Base):
     __tablename__ = 'crawlingrules'
@@ -15,6 +33,7 @@ class Crawlingrules(Base):
     contributor = Column(String)
     description = Column(String)
     content = Column(String)
+    docslinks = Column(String)
 
     def __repr__(self):
         return "<Crawlingrule(id_crawlingrules='%s', address='%s', selectionrule='%s', lastmodifytime='%s', " \
@@ -30,7 +49,9 @@ class Notifications(Base):
     id_matchingrule = Column(Integer)
     modifytime = Column(TIMESTAMP(True))
     currcontent = Column(String)
+    currdocslinks = Column(String)
     oldcontent = Column(String)
+    olddocslinks = Column(String)
     changes = Column(String, nullable=False)
     recipients = Column(ARRAY(String))
     ackers = Column(ARRAY(String)) # It's an array in case of future use. Normally should have maximum 1 element

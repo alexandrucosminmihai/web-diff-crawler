@@ -30,13 +30,47 @@ class webDiffCrawler(scrapy.Spider):
     DAILY_SCHEDULE_END = datetime.time(hour=23, minute=59)
     TEXT_ONLY = True
 
-    # Convert relative URLs in HTML code to absolute URLs
-    def makeURLsAbsolute(self, baseURL, htmlContent):
+    fileExtensions = ('.pdf', '.doc', '.docx', '.ppt', '.pps', '.txt', '.rar', '.zip', '.xls', '.7z', '.tar.gz')
+    keptTags = ('ul', 'ol', 'li', 'a', 'p', 'br', 'code')
+
+    # Convert relative URLs in anchor tags to absolute URLs
+    @staticmethod
+    def makeURLsAbsolute(baseURL, htmlContent):
         soup = BeautifulSoup(htmlContent, "lxml")
         for anchorTag in soup.find_all('a'):
             anchorTag['href'] = urljoin(baseURL, anchorTag['href'])
 
         return str(soup)
+
+    @staticmethod
+    def extractURLsToDocuments(htmlContent):
+        documentsURLs = []
+        soup = BeautifulSoup(htmlContent, "lxml")
+        for anchorTag in soup.find_all('a'):
+            if str(anchorTag['href']).endswith(webDiffCrawler.fileExtensions):
+                documentsURLs.append(str(anchorTag))
+
+        return documentsURLs
+
+    # Remove any unnecessary whitespaces
+    @staticmethod
+    def cleanHtmlContent(dirtyHtml):
+        cleanHtml = dirtyHtml
+        cleanHtml = re.sub(r'\n+', r'\n', cleanHtml)  # Remove consecutive \n's
+        cleanHtml = re.sub(r'\t+', r'\t', cleanHtml)  # Remove consecutive \t's
+        cleanHtml = re.sub(r'(\n(\s)*\n)+', r'\n', cleanHtml)  # Replace consecutive \n's with whitespaces between them
+        cleanHtml = re.sub(r'(\t(\s)*\t)+', r'\t', cleanHtml)  # Replace consecutive \t's with whitespaces between them
+        cleanHtml = re.sub(r'(\n\t(\s)*)+', r'\n\t', cleanHtml)
+        cleanHtml = re.sub(r'(\t\n(\s)*)+', r'\t\n', cleanHtml)
+        cleanHtml = re.sub(r'>(\s)*<li', r'><li', cleanHtml)
+        cleanHtml = re.sub(r'>(\s)*<ul', r'><ul', cleanHtml)
+        cleanHtml = re.sub(r'>(\s)*<ol', r'><ol', cleanHtml)
+        cleanHtml = re.sub(r'>(\s)*<p', r'><p', cleanHtml)
+        cleanHtml = re.sub(r'>(\s)*</ul', r'></ul', cleanHtml)
+        cleanHtml = re.sub(r'>(\s)*</ol', r'></ol', cleanHtml)
+        cleanHtml = re.sub(r'>(\s)*</p', r'></p', cleanHtml)
+
+        return cleanHtml
 
     def start_requests(self):
         startRequests = []
@@ -48,7 +82,6 @@ class webDiffCrawler(scrapy.Spider):
 
         self.sequenceMatcher = difflib.SequenceMatcher()
         self.session = webDiffCrawler.Session()
-
 
         for crawlingRule in self.session.query(mappedClasses.Crawlingrules).all():
             startRequests.append(scrapy.Request(url=crawlingRule.address, callback=self.parse))
@@ -90,33 +123,25 @@ class webDiffCrawler(scrapy.Spider):
             if webDiffCrawler.TEXT_ONLY or '::text' in crawlingRule.selectionrule:
                 # Ditch the script tags' content and then extract the text
                 self.log("Extracting the text from the HTML...", logging.INFO)
-                currContent = remove_tags(remove_tags_with_content(currContent, ('script', )), keep=('ul', 'ol', 'li', 'a', 'p', 'br'))
+                currContent = remove_tags(remove_tags_with_content(currContent, ('script', )),
+                                          keep=webDiffCrawler.keptTags)
                 currContent = remove_comments(currContent)
+                currContent = webDiffCrawler.cleanHtmlContent(currContent)
 
-                # Inceput sandbox
-                # currContent = "".join(response.css(selector).extract())
-                # currContent = remove_tags(remove_tags_with_content(currContent, ('script', )), keep=('ul', 'ol', 'li', 'a', 'p', 'br'))
-                currContent = re.sub(r'\n+', r'\n', currContent) # Remove consecutive \n's
-                currContent = re.sub(r'\t+', r'\t', currContent) # Remove consecutive \t's
-                currContent = re.sub(r'(\n(\s)*\n)+', r'\n', currContent) # Replace consecutive \n's with whitespaces between them
-                currContent = re.sub(r'(\t(\s)*\t)+', r'\t', currContent) # Replace consecutive \t's with whitespaces between them
-                currContent = re.sub(r'(\n\t(\s)*)+', r'\n\t', currContent)
-                currContent = re.sub(r'(\t\n(\s)*)+', r'\t\n', currContent)
-                currContent = re.sub(r'>(\s)*<li', r'><li', currContent)
-                currContent = re.sub(r'>(\s)*<ul', r'><ul', currContent)
-                currContent = re.sub(r'>(\s)*<ol', r'><ol', currContent)
-                currContent = re.sub(r'>(\s)*<p', r'><p', currContent)
-                currContent = re.sub(r'>(\s)*</ul', r'></ul', currContent)
-                currContent = re.sub(r'>(\s)*</ol', r'></ol', currContent)
-                currContent = re.sub(r'>(\s)*</p', r'></p', currContent)
-                # Sfarsit sandbox
-
-            currContent = self.makeURLsAbsolute(response.url, currContent)  # Convert relative URLs to absolute URLs
+            # Convert relative URLs to absolute URLs
+            currContent = webDiffCrawler.makeURLsAbsolute(response.url, currContent)
+            currContent = remove_tags(remove_tags_with_content(currContent, ('script',)),
+                                      keep=webDiffCrawler.keptTags)
+            # Extract URLs to downloadable documents
+            currLinks = webDiffCrawler.extractURLsToDocuments(currContent)
             # currContent = html.escape(currContent)
+            # currContent = currContent.replace("'", "\\'")
+            # currContent = currContent.replace('"', '\\"')
             currContent = currContent.strip()
-            currContent = currContent.encode('unicode-escape').decode()  # Escape special chars like \n \t
+            # currContent = currContent.encode('unicode-escape').decode()  # Escape special chars like \n \t
             self.log("currContent = " + currContent)
             oldContent = crawlingRule.content
+            oldLinks = crawlingRule.docslinks
             # oldContent = oldContent.encode('unicode-escape').decode()
             self.log("oldContent = " + oldContent)
 
@@ -135,23 +160,29 @@ class webDiffCrawler(scrapy.Spider):
                              " has changed => New notification issued", logging.INFO)
 
                     # Create a new notification and add it to the 'notifications' table
-                    recipients = ["testUser"]
+                    recipients = ["all"]
                     # id_notifications | address | matchingrule | id_matchingrule | modifytime | currcontent | oldcontent | changes | recipients | ackers
                     newNotification = mappedClasses.Notifications(address=crawlingRule.address,
                                                                   id_matchingrule=crawlingRule.id_crawlingrules,
                                                                   modifytime=crawlingRule.lastcrawltime,
                                                                   currcontent=currContent,
+                                                                  currdocslinks=json.dumps(currLinks),
                                                                   oldcontent=oldContent,
-                                                                  changes=json.dumps(operations), recipients=recipients, ackers=[])
+                                                                  olddocslinks=oldLinks,
+                                                                  changes=json.dumps(operations),
+                                                                  recipients=recipients,
+                                                                  ackers=[])
                     self.session.add(newNotification)
 
                     crawlingRule.content = currContent
+                    crawlingRule.docslinks = json.dumps(currLinks)
                     crawlingRule.lastmodifytime = datetime.datetime.now()
             else:
                 # This is the first content we ever get for this rule
                 self.log("This is the first crawl for id_crawlingrules=" + str(crawlingRule.id_crawlingrules)
                          + " so no new Notification was issued", logging.INFO)
                 crawlingRule.content = currContent
+                crawlingRule.docslinks = json.dumps(currLinks)
                 crawlingRule.lastmodifytime = datetime.datetime.now()
 
             self.session.add(crawlingRule)
