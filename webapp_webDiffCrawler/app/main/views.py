@@ -1,5 +1,6 @@
 import datetime
 import sys
+import json
 from . import main
 from .. import dbSession
 from flask import Flask, render_template, url_for, redirect, flash, request, abort
@@ -83,7 +84,17 @@ def reviewNotification(id_notifications):
     currNotif['modifytimestr'] = notificationRow.modifytime.strftime("%A, %d-%m-%Y, %H:%M")
     currNotif['currcontent'] = notificationRow.currcontent
     currNotif['oldcontent'] = notificationRow.oldcontent
-    currNotif['changes'] = notificationRow.changes # Keep the changes in the json format, as given by the database
+    # Keep the changes in the json format, as given by the database
+    currNotif['changes'] = notificationRow.changes
+    if notificationRow.currdocslinks:
+        currNotif['currdocslinks'] = json.loads(notificationRow.currdocslinks)
+    else:
+        currNotif['currdocslinks'] = None
+
+    if notificationRow.olddocslinks:
+        currNotif['olddocslinks'] = json.loads(notificationRow.olddocslinks)
+    else:
+        currNotif['olddocslinks'] = None
     # currNotif['changes'] = json.loads(notificationRow.changes)
 
     return render_template('review_notification.html', notification=currNotif)
@@ -163,6 +174,66 @@ def crawlingRules():
         currRule['description'] = crawlingRule.description
         currRule['lastymodifytime'] = crawlingRule.lastmodifytime
         currRule['lastmodifytimestr'] = crawlingRule.lastmodifytime.strftime("%A, %d-%m-%Y, %H:%M")
+
+        currRule['crawlperiodstr'] = ""
+        crawlPeriodMinutes = crawlingRule.crawlperiod
+        if not crawlPeriodMinutes:
+            crawlPeriodMinutes = 0
+            crawlPeriodHours = 0
+        else:
+            crawlPeriodHours = crawlPeriodMinutes // 60
+            crawlPeriodMinutes = crawlPeriodMinutes % 60
+
+        if crawlPeriodHours > 0 and crawlPeriodMinutes > 0:
+            currRule['crawlperiodstr'] = "{0:d}h and {1:d}m".format(crawlPeriodHours, crawlPeriodMinutes)
+        elif crawlPeriodHours > 0:
+            if crawlPeriodHours == 1:
+                currRule['crawlperiodstr'] = "{0:d} hour".format(crawlPeriodHours)
+            else:
+                currRule['crawlperiodstr'] = "{0:d} hours".format(crawlPeriodHours)
+        elif crawlPeriodMinutes > 0:
+            if crawlPeriodMinutes == 1:
+                currRule['crawlperiodstr'] = "{0:d} minute".format(crawlPeriodMinutes)
+            else:
+                currRule['crawlperiodstr'] = "{0:d} minutes".format(crawlPeriodMinutes)
+
+
         rules.append(currRule)
 
     return render_template('crawlingrules.html', crawlingRuleForm=crawlingRuleForm, crawlingRules=rules)
+
+@main.route('/crawlingrules/<id_crawlingrules>')
+def reviewRule(id_crawlingrules):
+    notifications = []
+    ruleRow = dbSession.query(Crawlingrules).\
+            filter(Crawlingrules.id_crawlingrules==id_crawlingrules).first()
+
+    if ruleRow is None:
+        abort(404)
+
+    currRule = dict()
+    currRule['id_crawlingrules'] = ruleRow.id_crawlingrules
+    currRule['address'] = ruleRow.address
+    currRule['selectionrule'] = ruleRow.selectionrule
+    currRule['lastmodifytimestr'] = ruleRow.lastmodifytime.strftime("%A, %d-%m-%Y, %H:%M")
+    currRule['lastcrawltimestr'] = ruleRow.lastcrawltime.strftime("%A, %d-%m-%Y, %H:%M")
+    currRule['crawlperiod'] = ruleRow.crawlperiod
+    currRule['contributor'] = ruleRow.contributor
+    currRule['description'] = ruleRow.description
+    currRule['content'] = ruleRow.content
+    if ruleRow.docslinks:
+        currRule['docslinks'] = json.loads(ruleRow.docslinks)
+    else:
+        currRule['docslinks'] = None
+
+    for notif in \
+            dbSession.query(Notifications).filter(Notifications.id_matchingrule==id_crawlingrules).\
+                    order_by(Notifications.id_notifications.desc()):
+        currNotif = dict()
+        currNotif['id_notifications'] = notif.id_notifications
+        currNotif['address'] = notif.address
+        currNotif['modifytime'] = notif.modifytime
+        currNotif['modifytimestr'] = notif.modifytime.strftime("%a, %d-%m-%Y, %H:%M")
+        notifications.append(currNotif)
+
+    return render_template('review_crawlingrule.html', rule=currRule, notifications=notifications)
