@@ -2,14 +2,21 @@
 from sqlalchemy import Column, Sequence, Integer, String, TIMESTAMP, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+from itsdangerous import JSONWebSignatureSerializer as Serializer
+from flask import current_app
 
 Base = declarative_base()
 
-class Users(Base):
+
+class Users(UserMixin, Base):
     __tablename__ = 'users'
     id_users = Column(Integer, Sequence('users_id_users_seq'), primary_key=True)
-    # secrettoken = Column(String) # Token used to grant registration
+    email = Column(String(64), unique=True) # nullable and unique is ok in postgres
+    username = Column(String(64), unique=True)
     password_hash = Column(String(128))
+    secrettoken = Column(String(128))
+    id_roles = Column(Integer)
 
     @property
     def password(self):
@@ -19,8 +26,37 @@ class Users(Base):
     def password(self, password):
         self.password_hash = generate_password_hash(password)
 
+    def get_id(self):
+        return str(self.id_users)
+
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def generateToken(self):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        return s.dumps({'confirm': self.id_users}).decode('utf-8')
+
+    def confirmToken(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token.encode('utf-8'))
+        except:
+            return False
+
+        if data.get('confirm') != self.id_users:
+            return False
+
+        return True
+
+
+# User loader function used by Flask-login
+from webapp_webDiffCrawler.app import loginManager, dbSession
+
+
+@loginManager.user_loader
+def load_user(user_id): # user_id is a string
+    return dbSession.query(Users).filter(Users.id_users==int(user_id)).first()
+
 
 class Crawlingrules(Base):
     __tablename__ = 'crawlingrules'

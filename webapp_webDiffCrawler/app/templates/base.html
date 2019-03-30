@@ -47,12 +47,29 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{{url_for('.index', _external=True)}}">WebDiffCrawler</a>
+            <a class="navbar-brand" href="{{url_for('main.index', _external=True)}}">WebDiffCrawler</a>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li><a href="{{url_for('.notifications', _external=True)}}">Notifications</a></li>
-                <li><a href="{{url_for('.crawlingRules', _external=True)}}">Rules</a></li>
+                <li><a href="{{url_for('main.notifications', _external=True)}}">Notifications</a></li>
+                <li><a href="{{url_for('main.crawlingRules', _external=True)}}">Rules</a></li>
+                {% if current_user.is_authenticated and current_user.id_roles %}
+                    <li><a href="{{url_for('auth.manageusers', _external=True)}}">Users</a></li>
+                {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if current_user.is_authenticated %}
+                    <li>
+                        <a href="{{ url_for('auth.logout') }}">Log out</a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{ url_for('auth.register') }}">Register</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('auth.login') }}">Log in</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </div>

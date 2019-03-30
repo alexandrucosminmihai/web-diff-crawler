@@ -6,14 +6,18 @@ from .. import dbSession
 from flask import Flask, render_template, url_for, redirect, flash, request, abort
 from webDiffCrawler.webDiffCrawler.mappedClasses import Notifications, Crawlingrules
 from .forms import CrawlingRuleForm
+from flask_login import login_required
 
 @main.route('/')  # Add a route that maps the '/' URL to the 'index' view (handling) function
+@login_required
 def index():
     # return '<h1>Hello, world!</h1>'
     # return render_template('index.html') # Render the given template using Jinja2 and return the resulting html
     return redirect(url_for('main.notifications'))
 
+
 @main.route('/ackanotification', methods=['POST'])
+@login_required
 def ackANotification():
     currentUser = "testUser"
     notifId = request.form['ackNotificationId']
@@ -25,6 +29,7 @@ def ackANotification():
 
 
 @main.route('/acknotifications', methods=['POST'])
+@login_required
 def ackNotifications():
     currentUser = "testUser"
     idsToAck = request.form.getlist('ack_checkbox')
@@ -40,6 +45,7 @@ def ackNotifications():
 
 
 @main.route('/notifications')
+@login_required
 def notifications():
     notifications = []
     matchingRule = None
@@ -63,7 +69,9 @@ def notifications():
 
     return render_template('notifications.html', notifications=notifications)
 
+
 @main.route('/notifications/<id_notifications>')
+@login_required
 def reviewNotification(id_notifications):
     notificationRow = dbSession.query(Notifications).\
         filter(Notifications.id_notifications==id_notifications).first()
@@ -101,6 +109,7 @@ def reviewNotification(id_notifications):
 
 
 @main.route('/deletearule', methods=['POST'])
+@login_required
 def deleteACrawlingRule():
     ruleId = request.form['deleteCrawlingRuleId']
     ruleToDelete = dbSession.query(Crawlingrules).filter_by(id_crawlingrules=ruleId).first()
@@ -110,6 +119,7 @@ def deleteACrawlingRule():
 
 
 @main.route('/deleterules', methods=['POST'])
+@login_required
 def deleteCrawlingRules():
     idsToDelete = request.form.getlist('delete_checkbox')
     if idsToDelete:
@@ -123,6 +133,7 @@ def deleteCrawlingRules():
 
 
 @main.route('/crawlingrules', methods=['GET', 'POST'])
+@login_required
 def crawlingRules():
     # Create the form to be rendered
     # crawlingRuleForm = webapp.forms.CrawlingRuleForm(address="https://en.wikipedia.org/wiki/Internet")
@@ -202,7 +213,9 @@ def crawlingRules():
 
     return render_template('crawlingrules.html', crawlingRuleForm=crawlingRuleForm, crawlingRules=rules)
 
+
 @main.route('/crawlingrules/<id_crawlingrules>')
+@login_required
 def reviewRule(id_crawlingrules):
     notifications = []
     ruleRow = dbSession.query(Crawlingrules).\
