@@ -7,13 +7,28 @@
 {% block page_content %}
 
 <div class="row">
-    <h1 class="col-lg-11">
-        Review crawling rule id {{ rule['id_crwalingrule'] }}
-    </h1>
+    <div class="col-lg-6">
+        <h1>
+            Review crawling rule id {{ rule['id_crawlingrules'] }}
+        </h1>
+    </div>
+
+    <div class="col-lg-2">
+        <br>
+        <form id="editRuleForm" action="{{url_for('main.editRule', id_crawlingrules=rule['id_crawlingrules'])}}" method="POST">
+            <input id="editCrawlingRule" name="editCrawlingRuleId" type="hidden"
+                   value="{{rule['id_crawlingrules']}}">
+            <button class="btn btn-success" type="submit">Save changes</button>
+        </form>
+    </div>
+
+    <div class="col-lg-3">
+
+    </div>
 
     <div class="col-lg-1">
         <br>
-        <form action="{{url_for('.deleteACrawlingRule')}}" method="POST">
+        <form action="{{url_for('main.deleteACrawlingRule')}}" method="POST">
             <input id="deleteCrawlingRule" name="deleteCrawlingRuleId" type="hidden"
                    value="{{rule['id_crawlingrules']}}">
             <button class="btn btn-danger" type="submit">Delete</button>
@@ -27,22 +42,54 @@
           <tbody>
             <tr>
                 <th scope="row">Description</th>
-                <td>{{ rule['description'] }}</td>
+                <td>
+                    <input form="editRuleForm" class="form-control" id="description" name="description" type="text" required minlength="1" value="{{ rule['description'] }}">
+                </td>
             </tr>
             <tr>
                 <th scope="row">Address</th>
-                <td><a href="{{ rule['address'] }}">{{ rule['address'] }}</a></td>
+                <td>
+                    <input form="editRuleForm" class="form-control" id="address" name="address" type="text" required minlength="1" value="{{ rule['address'] }}">
+                </td>
             </tr>
             <tr>
                 <th scope="row">Selection rule</th>
-                <td>{{ rule['selectionrule'] }}</td>
+                <td>
+                    <input form="editRuleForm" class="form-control" id="rule" name="rule" type="text" required minlength="1" value="{{ rule['selectionrule'] }}">
+                </td>
             </tr>
             <tr>
                 <th scope="row">Check every</th>
-                <td>{{ rule['crawlperiod'] }} m</td>
+                <td>
+                    <div class="row">
+                    {% if rule['crawlperiod'] % 60 == 0 %}
+                        <div class="col-lg-5">
+                            <input form="editRuleForm" class="form-control" id="crawlperiod" name="crawlperiod" type="number" min="1" required value="{{ rule['crawlperiod'] / 60}}">
+                        </div>
+
+                        <div class="col-lg-5">
+                            <select form="editRuleForm" class="form-control" id="crawlperiodunittype" name="crawlperiodunittype">
+                                <option value="hours">hours</option>
+                                <option value="minutes">minutes</option>
+                            </select>
+                        </div>
+                    {% else %}
+                        <div class="col-lg-5">
+                            <input form="editRuleForm" class="form-control" id="crawlperiod" name="crawlperiod" type="number" min="1" required value="{{ rule['crawlperiod'] }}">
+                        </div>
+
+                        <div class="col-lg-5">
+                            <select form="editRuleForm" class="form-control" id="crawlperiodunittype" name="crawlperiodunittype">
+                                <option value="minutes">minutes</option>
+                                <option value="hours">hours</option>
+                            </select>
+                        </div>
+                    {% endif %}
+                    </div>
+                </td>
             </tr>
             <tr>
-                <th scope="row">Last update time</th>
+                <th scope="row">Last content update time</th>
                 <td>{{ rule['lastmodifytimestr'] }}</td>
             </tr>
             <tr>

@@ -4,7 +4,7 @@ import json
 from . import main
 from .. import dbSession
 from flask import Flask, render_template, url_for, redirect, flash, request, abort
-from webDiffCrawler.webDiffCrawler.mappedClasses import Notifications, Crawlingrules
+from webapp_webDiffCrawler.app.models import Notifications, Crawlingrules
 from .forms import CrawlingRuleForm
 from flask_login import login_required
 
@@ -21,10 +21,11 @@ def index():
 def ackANotification():
     currentUser = "testUser"
     notifId = request.form['ackNotificationId']
-    notifToAck = dbSession.query(Notifications).filter_by(id_notifications=notifId).first()
-    notifToAck.ackers = list(notifToAck.ackers)
-    notifToAck.ackers.append(currentUser)
-    dbSession.commit()
+    if notifId:
+        notifToAck = dbSession.query(Notifications).filter_by(id_notifications=notifId).first()
+        notifToAck.ackers = list(notifToAck.ackers)
+        notifToAck.ackers.append(currentUser)
+        dbSession.commit()
     return redirect(url_for('main.notifications'))
 
 
@@ -112,9 +113,10 @@ def reviewNotification(id_notifications):
 @login_required
 def deleteACrawlingRule():
     ruleId = request.form['deleteCrawlingRuleId']
-    ruleToDelete = dbSession.query(Crawlingrules).filter_by(id_crawlingrules=ruleId).first()
-    dbSession.delete(ruleToDelete)
-    dbSession.commit()
+    if ruleId:
+        ruleToDelete = dbSession.query(Crawlingrules).filter_by(id_crawlingrules=ruleId).first()
+        dbSession.delete(ruleToDelete)
+        dbSession.commit()
     return redirect(url_for('main.crawlingRules'))
 
 
@@ -136,9 +138,7 @@ def deleteCrawlingRules():
 @login_required
 def crawlingRules():
     # Create the form to be rendered
-    # crawlingRuleForm = webapp.forms.CrawlingRuleForm(address="https://en.wikipedia.org/wiki/Internet")
-    crawlingRuleForm = \
-        CrawlingRuleForm(address="https://www.cjmaramures.ro/activitate/comunicare/comunicate-de-presa")
+    crawlingRuleForm = CrawlingRuleForm()
 
     address = None
     selector = None
@@ -214,7 +214,7 @@ def crawlingRules():
     return render_template('crawlingrules.html', crawlingRuleForm=crawlingRuleForm, crawlingRules=rules)
 
 
-@main.route('/crawlingrules/<id_crawlingrules>')
+@main.route('/crawlingrules/<id_crawlingrules>', methods=['GET'])
 @login_required
 def reviewRule(id_crawlingrules):
     notifications = []
@@ -250,3 +250,29 @@ def reviewRule(id_crawlingrules):
         notifications.append(currNotif)
 
     return render_template('review_crawlingrule.html', rule=currRule, notifications=notifications)
+
+@main.route('/crawlingrules/<id_crawlingrules>/edit', methods=['POST'])
+@login_required
+def editRule(id_crawlingrules):
+    notifications = []
+    ruleRow = dbSession.query(Crawlingrules).\
+            filter(Crawlingrules.id_crawlingrules==id_crawlingrules).first()
+
+    if ruleRow is None:
+        abort(404)
+
+    print(request.form)
+
+    ruleRow.description = request.form['description']
+    ruleRow.address = request.form['address']
+    ruleRow.selectionrule = request.form['rule']
+    if request.form['crawlperiodunittype'] == 'hours':
+        ruleRow.crawlperiod = int(request.form['crawlperiod']) * 60
+    else:
+        ruleRow.crawlperiod = int(request.form['crawlperiod'])
+
+    dbSession.add(ruleRow)
+    dbSession.commit()
+    flash('Crawling rule ' + id_crawlingrules + ' has been edited.')
+
+    return redirect(url_for('main.reviewRule', id_crawlingrules=id_crawlingrules))

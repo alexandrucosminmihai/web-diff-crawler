@@ -57,6 +57,7 @@
                 <th scope="col">Selector</th>
                 <th scope="col">Crawl every</th>
                 <th scope="col">Last update</th>
+                <th scope="col"></th>
                 <th scope="col">Delete</th>
                 <th scope="col">
                     <form id="deleteChecked" action="{{url_for('.deleteCrawlingRules')}}" method="POST">
@@ -83,6 +84,13 @@
                         <td>{{rule['selectionrule']}}</td>
                         <td>{{rule['crawlperiodstr']}}</td>
                         <td>{{rule['lastmodifytimestr']}}</td>
+                        <td>
+                            <form action="{{url_for('main.reviewRule', id_crawlingrules=rule['id_crawlingrules'])}}" method="GET">
+                                <button class="btn btn-info">
+                                    <i class="far fa-edit"></i>
+                                </button>
+                            </form>
+                        </td>
                         <td>
                             <form action="{{url_for('.deleteACrawlingRule')}}" method="POST">
                                 <input id="deleteCrawlingRule" name="deleteCrawlingRuleId" type="hidden"
