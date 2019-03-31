@@ -49,6 +49,15 @@ class Users(UserMixin, Base):
         return True
 
 
+# User loader function used by Flask-login
+from webapp_webDiffCrawler.app import loginManager, dbSession
+
+
+@loginManager.user_loader
+def load_user(user_id): # user_id is a string
+    return dbSession.query(Users).filter(Users.id_users==int(user_id)).first()
+
+
 class Crawlingrules(Base):
     __tablename__ = 'crawlingrules'
     id_crawlingrules = Column(Integer, Sequence('crawlingrules_id_crawlingrules_seq'), primary_key=True)
