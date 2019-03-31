@@ -98,7 +98,6 @@ class webDiffCrawler(scrapy.Spider):
         currDateTime = datetime.datetime.now()
 
         isFirstCrawl = True # Assume this is the first time we check this crawling rule
-        isFirstCrawl = False # TODO
         lastCrawlTimestamp = 0
 
         if crawlingRule.lastcrawltime: # The rule was used before
