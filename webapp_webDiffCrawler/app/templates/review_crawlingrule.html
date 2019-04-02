@@ -118,7 +118,7 @@
                 {% if rule['docslinks'] %}
                     <h4>Documents download links:</h4>
                     <ul>
-                        {% for documentAnchor in rule["currdocslinks"] %}
+                        {% for documentAnchor in rule["docslinks"] %}
                             <li>
                                 {{ documentAnchor | safe }}
                             </li>
@@ -162,8 +162,8 @@
                 {% for notif in notifications %}
                     <tr>
                         <td>{{notif['id_notifications']}}</td>
-                        <td>{{notif['ruleDescription']}}</td>
-                        <td>{{notif['matchingrule']}}</td>
+                        <td>{{rule['description']}}</td>
+                        <td>{{rule['selectionrule']}}</td>
                         <td>{{notif['modifytimestr']}}</td>
                         <td>
                             <form action="{{url_for('.reviewNotification', id_notifications=notif['id_notifications'])}}"
