@@ -1,10 +1,11 @@
-from flask import render_template, redirect, request, url_for, flash
+from flask import render_template, redirect, request, url_for, flash, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
 from webapp_webDiffCrawler.app.main import main
-from webapp_webDiffCrawler.app.models import Users
+from webapp_webDiffCrawler.app.models import Users, Configurations
 from webapp_webDiffCrawler.app import dbSession
 from .forms import LoginForm, RegistrationForm, SecretTokenGenrationForm
+import datetime
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -56,11 +57,27 @@ def register():
     return render_template('auth/register.html', form=form)
 
 
-@auth.route('/users', methods=['GET', 'POST'])
+@auth.route('/admin', methods=['GET', 'POST'])
 @login_required
-def manageusers():
+def adminpage():
     if current_user.id_roles != 1: # If not an admin
         return redirect(url_for('main.index'))
+
+    configurationRow = dbSession.query(Configurations).first()
+
+    if configurationRow is None:
+        abort(404)
+
+    configurationDict = {}
+    configurationDict['beginhour'] = configurationRow.dailyschedulebegin.hour
+    configurationDict['beginminute'] = configurationRow.dailyschedulebegin.minute
+    configurationDict['endhour'] = configurationRow.dailyscheduleend.hour
+    configurationDict['endminute'] = configurationRow.dailyscheduleend.minute
+
+    if (configurationRow.runmode == 0):
+        configurationDict['differentstatus'] = "on"
+    else:
+        configurationDict['differentstatus'] = "off"
 
     form = SecretTokenGenrationForm()
     if form.validate_on_submit():
@@ -76,7 +93,7 @@ def manageusers():
         dbSession.add(user)
         dbSession.commit()
         flash('New secret token generated. A person can now register using it.')
-        return redirect(url_for('auth.manageusers'))
+        return redirect(url_for('auth.adminpage'))
 
     users = []
     for user in dbSession.query(Users).order_by(Users.id_users.desc()):
@@ -89,7 +106,60 @@ def manageusers():
 
         users.append(currUser)
 
-    return render_template('auth/users.html', secretTokenForm=form, users=users)
+    return render_template('auth/admin.html', secretTokenForm=form, users=users, configuration=configurationDict)
+
+@auth.route('/updateschedule', methods=['POST'])
+@login_required
+def updateschedule():
+    if current_user.id_roles != 1: # If not an admin
+        return redirect(url_for('main.index'))
+
+    configurationRow = dbSession.query(Configurations).first()
+
+    if configurationRow is None:
+        abort(404)
+
+    currDatetime = datetime.datetime.now()
+
+    newDailyschedulebegin = datetime.datetime(year=currDatetime.year, month=currDatetime.month, day=currDatetime.day, hour=int(request.form['beginhour']), minute=int(request.form['beginminute']))
+    newDailyscheduleend = datetime.datetime(year=currDatetime.year, month=currDatetime.month, day=currDatetime.day, hour=int(request.form['endhour']), minute=int(request.form['endminute']))
+
+    configurationRow.dailyschedulebegin = newDailyschedulebegin
+    configurationRow.dailyscheduleend = newDailyscheduleend
+
+    dbSession.add(configurationRow)
+    dbSession.commit()
+    flash('Crawling schedule updated to ' + str(configurationRow.dailyschedulebegin) + " --- " + str(configurationRow.dailyscheduleend))
+
+    return redirect(url_for('auth.adminpage'))
+
+
+@auth.route('/togglecrawler', methods=['POST'])
+@login_required
+def togglecrawler():
+    if current_user.id_roles != 1: # If not an admin
+        return redirect(url_for('main.index'))
+
+    flashMessage = ""
+
+    configurationRow = dbSession.query(Configurations).first()
+
+    if configurationRow is None:
+        abort(404)
+
+    if configurationRow.runmode == 0:
+        configurationRow.runmode = 1
+        flashMessage = "The scraper is now active!"
+    else:
+        configurationRow.runmode = 0
+        flashMessage = "The scraper has been deactivated!"
+
+    dbSession.add(configurationRow)
+    dbSession.commit()
+    flash(flashMessage)
+
+    return redirect(url_for('auth.adminpage'))
+
 
 @auth.route('/deleteauser', methods=['POST'])
 @login_required
@@ -100,7 +170,7 @@ def deleteAUser():
     userToDelete = dbSession.query(Users).filter_by(id_users=userId).first()
     dbSession.delete(userToDelete)
     dbSession.commit()
-    return redirect(url_for('auth.manageusers'))
+    return redirect(url_for('auth.adminpage'))
 
 
 @auth.route('/deleteusers', methods=['POST'])
@@ -117,4 +187,4 @@ def deleteUsers():
 
         dbSession.commit()
 
-    return redirect(url_for('auth.manageusers'))
+    return redirect(url_for('auth.adminpage'))

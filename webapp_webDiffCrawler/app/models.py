@@ -97,3 +97,15 @@ class Notifications(Base):
                " modifytime='%s', oldcontent='%s', changes='%s' recipients='%s', ackers='%s')>" % \
                (self.id_notifications, self.address, self.matchingrule, self.id_matchingrule, self.modifytime,
                 self.oldcontent, self.changes, self.recipients, self.ackers)
+
+
+class Configurations(Base):
+    __tablename__ = 'configurations'
+    id_configurations = Column(Integer, Sequence('configurations_id_configurations_seq'), primary_key=True)
+    runmode = Column(Integer)
+    dailyschedulebegin = Column(TIMESTAMP(True))
+    dailyscheduleend = Column(TIMESTAMP(True))
+
+    def __repr__(self):
+        return "<Configuration(id_configurations='%s', runmode='%s', dailyschedulebegin='%s', dailyscheduleend='%s'" % \
+               (self.id_configurations, self.runmode, self.dailyschedulebegin, self.dailyscheduleend)

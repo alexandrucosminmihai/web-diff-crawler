@@ -26,8 +26,8 @@ class webDiffCrawler(scrapy.Spider):
     Session = sessionmaker(bind=engine)
 
     # Crawler configurations
-    DAILY_SCHEDULE_BEGIN = datetime.time(hour=0, minute=0)
-    DAILY_SCHEDULE_END = datetime.time(hour=23, minute=59)
+    # DAILY_SCHEDULE_BEGIN = datetime.time(hour=0, minute=0)
+    # DAILY_SCHEDULE_END = datetime.time(hour=23, minute=59)
     TEXT_ONLY = True
 
     fileExtensions = ('.pdf', '.doc', '.docx', '.ppt', '.pps', '.txt', '.rar', '.zip', '.xls', '.7z', '.tar.gz')
@@ -75,9 +75,34 @@ class webDiffCrawler(scrapy.Spider):
     def start_requests(self):
         startRequests = []
         currDateTime = datetime.datetime.now()
+        dailyScheduleBegin = self.configuration.dailyschedulebegin
+        dailyScheduleEnd = self.configuration.dailyscheduleend
+
+        self.shouldRun = True
+
+        self.configuration = self.session.query(mappedClasses.Configurations).first()
+
+        # If the crawler is deactivated
+        if self.configuration.runmode == 0:
+            self.shouldRun = False
+            self.log("The crawler shouldn't run because runmode=" + str(self.configuration.runmode), logging.INFO)
+            return startRequests
 
         # If the crawler is not meant to run at this time, don't do anything
-        if not (webDiffCrawler.DAILY_SCHEDULE_BEGIN <= currDateTime.time() <= webDiffCrawler.DAILY_SCHEDULE_END):
+        timeBegin = datetime.time(hour=dailyScheduleBegin.hour, minute=dailyScheduleBegin.minute)
+        timeMidnight = datetime.time(hour=0, minute=0)
+        timeEnd = datetime.time(hour=dailyScheduleEnd.hour, minute=dailyScheduleEnd.minute)
+        timeCurr = currDateTime.time()
+
+        if timeBegin <= timeEnd: # If the interval does not include midnight (00:00)
+            if not (timeBegin <= timeCurr <= timeEnd):
+                self.shouldRun = False
+        else: # If midnight is in the interval, check whether now is in [begin, midnight] or (midnight, end]
+            if not ((timeBegin <= timeCurr <= timeMidnight) or (timeMidnight <= timeCurr <= timeEnd)):
+                self.shouldRun = False
+
+        if not self.shouldRun:
+            self.log("The crawler shouldn't run because it's out of schedule", logging.INFO)
             return startRequests
 
         self.sequenceMatcher = difflib.SequenceMatcher()
@@ -91,6 +116,8 @@ class webDiffCrawler(scrapy.Spider):
 
     def parse(self, response):
         global epsilon
+
+        shouldCrawlRule = True
 
         crawlingRule = response.meta["crawlingRuleEntry"]
 
@@ -113,7 +140,11 @@ class webDiffCrawler(scrapy.Spider):
         self.log("deltaTimestamp+epsilon=" + str(deltaTimestamp), logging.INFO)
 
         # Check whether the wait interval between two consecutive crawls has passed
-        if (deltaTimestamp / 60) >= crawlingRule.crawlperiod:
+        if (deltaTimestamp / 60) < crawlingRule.crawlperiod:
+            shouldCrawlRule = False
+            return
+
+        if shouldCrawlRule:
             crawlingRule.lastcrawltime = currDateTime # A new crawl will begin
             selector = crawlingRule.selectionrule.replace('::text', '').strip()
 

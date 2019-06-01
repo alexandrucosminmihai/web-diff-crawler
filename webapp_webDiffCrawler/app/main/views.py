@@ -251,6 +251,7 @@ def reviewRule(id_crawlingrules):
 
     return render_template('review_crawlingrule.html', rule=currRule, notifications=notifications)
 
+
 @main.route('/crawlingrules/<id_crawlingrules>/edit', methods=['POST'])
 @login_required
 def editRule(id_crawlingrules):

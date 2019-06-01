@@ -54,7 +54,7 @@
                 <li><a href="{{url_for('main.notifications', _external=True)}}">Notifications</a></li>
                 <li><a href="{{url_for('main.crawlingRules', _external=True)}}">Rules</a></li>
                 {% if current_user.is_authenticated and current_user.id_roles %}
-                    <li><a href="{{url_for('auth.manageusers', _external=True)}}">Users</a></li>
+                    <li><a href="{{url_for('auth.adminpage', _external=True)}}">Administration</a></li>
                 {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">

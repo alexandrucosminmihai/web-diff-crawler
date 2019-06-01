@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+    Manage users
+{% endblock %}
+
+{% block page_content %}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="col-lg-8">
+            <h1>
+                <i class="fas fa-info-circle"></i> The scraper is
+                {% if configuration['differentstatus'] == 'on' %}
+                    <span style="color:red">not running</span>
+                {% else %}
+                    <span style="color:green">running</span>
+                {% endif %}
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+
+    <div class="col-lg-12">
+        <div class="col-lg-8">
+            <h1>
+                Manage running time
+            </h1>
+            <h4>
+                Turn on/off the scraper and change the daily running schedule
+            </h4>
+        </div>
+
+        <div class="col-lg-2">
+            <br>
+            <form id="toggleCrawlerForm" action="{{url_for('auth.togglecrawler')}}" method="POST">
+                <button class="btn btn-warning" type="submit">Turn scraper {{configuration['differentstatus']}}</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <table class="table">
+          <tbody>
+            <tr>
+                <th scope="row">Schedule beginning</th>
+                <td>
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <input form="updatescheduleForm" class="form-control" id="beginhour" name="beginhour" type="number" min="0" max="23" required value="{{ configuration['beginhour'] }}">
+                        </div>
+                        <div class="col-lg-2">
+                            <input form="updatescheduleForm" class="form-control" id="beginminute" name="beginminute" type="number" min="0" max="59" required value="{{ configuration['beginminute'] }}">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">Schedule ending</th>
+                <td>
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <input form="updatescheduleForm" class="form-control" id="endhour" name="endhour" type="number" min="0" max="23" required value="{{ configuration['endhour'] }}">
+                        </div>
+                        <div class="col-lg-2">
+                            <input form="updatescheduleForm" class="form-control" id="endminute" name="endminute" type="number" min="0" max="59" required value="{{ configuration['endminute'] }}">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+        <form id="updatescheduleForm" action="{{url_for('auth.updateschedule')}}" method="POST">
+            <button class="btn btn-success" type="submit">Update schedule</button>
+        </form>
+    </div>
+
+
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="col-lg-12">
+            <h1>
+                Manage users
+            </h1>
+            <h4>
+                See registered users, delete their accounts and generate secret tokens used at registration
+            </h4>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="row">
+    <h2>
+        Generate secret token:
+    </h2>
+</div>
+
+<div class="row">
+    {{ wtf.quick_form(secretTokenForm, action=url_for('auth.adminpage')) }}
+</div>
+
+<div class="row">
+    <h2>
+        Existing users:
+    </h2>
+</div>
+
+{% endblock %}
+
+{% block page_content2 %}
+
+<div class="container-fluid mytable">
+    <table class="table table-responsive table-hover">
+        <thead>
+            <th scope="col">User id</th>
+            <th scope="col">Secret token</th>
+            <th scope="col">Username</th>
+            <th scope="col">Email</th>
+            <th scope="col">Permissions</th>
+            <th scope="col">Delete</th>
+            <th scope="col">
+                <form id="deleteChecked" action="{{url_for('.deleteUsers')}}" method="POST">
+                    <button class="btn btn-danger" type="submit">Delete checked users</button>
+                </form>
+            </th>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{user['id_users']}}</td>
+                    <td>{{user['secrettoken']}}</td>
+                    <td>{{user['username']}}</td>
+                    <td>{{user['email']}}</td>
+                    <td>
+                    {% if user['id_roles'] %}
+                        Admin
+                    {% else %}
+                        Normal
+                    {% endif %}
+                    </td>
+                    <td>
+                        <form action="{{url_for('.deleteAUser')}}" method="POST">
+                            <input id="deleteUser" name="deleteUserId" type="hidden"
+                                   value="{{user['id_users']}}">
+                            <button class="btn btn-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                    <td>
+                        <input form="deleteChecked" type="checkbox" name='delete_checkbox'
+                               value = "{{user['id_users']}}">
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -49,55 +49,67 @@
     </p>
 </div>
 -->
+<!-- The container with the two smaller containers -->
+<div class="container-fluid">
 
-<div class="row">
-    <h3><u>New content</u>:</h3>
-</div>
+    <div class="row"> <!-- Comparation row -->
 
-<div class="row">
-    {% if notification["currdocslinks"] %}
-        <h4>Documents download links:</h4>
-        <ul>
-            {% for documentAnchor in notification["currdocslinks"] %}
-                <li>
-                    {{ documentAnchor | safe }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <h4>No documents download links</h4>
-    {% endif %}
-</div>
+        <div class="col-lg-6"> <!-- Div container New Content -->
+            <div class="row">
+                <h3><u>New content</u>:</h3>
+            </div>
 
-<div class="row">
-    <div class="col-8 col-centered multiline" id="new-content">
-        {{ notification["currcontent"] | string | safe }}
-    </div>
-</div>
+            <div class="row">
+                {% if notification["currdocslinks"] %}
+                    <h4>Documents download links:</h4>
+                    <ul>
+                        {% for documentAnchor in notification["currdocslinks"] %}
+                            <li>
+                                {{ documentAnchor | safe }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <h4>No documents download links</h4>
+                {% endif %}
+            </div>
 
-<div class="row">
-    <h3><u>Old content</u>:</h3>
-</div>
+            <div class="row">
+                <div class="col-lg-12 col-centered multiline" id="new-content">
+                    {{ notification["currcontent"] | string | safe }}
+                </div>
+            </div>
+        </div>
 
-<div class="row">
-    {% if notification["olddocslinks"] %}
-        <h4>Old documents download links:</h4>
-        <ul>
-            {% for documentAnchor in notification["olddocslinks"] %}
-                <li>
-                    {{ documentAnchor | safe }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <h4>No old documents download links</h4>
-    {% endif %}
-</div>
+        <div class="col-lg-6"> <!-- Div container Old Content -->
+            <div class="row">
+                <h3><u>Old content</u>:</h3>
+            </div>
 
-<div class="row">
-    <div class="col-8 col-centered multiline" id="old-content">
-        {{ notification["oldcontent"] | string | safe }}
-    </div>
+            <div class="row">
+                {% if notification["olddocslinks"] %}
+                    <h4>Old documents download links:</h4>
+                    <ul>
+                        {% for documentAnchor in notification["olddocslinks"] %}
+                            <li>
+                                {{ documentAnchor | safe }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <h4>No old documents download links</h4>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12 col-centered multiline" id="old-content">
+                    {{ notification["oldcontent"] | string | safe }}
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- Comparation row -->
+
 </div>
 
 
