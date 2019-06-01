@@ -91,6 +91,7 @@ def reviewNotification(id_notifications):
         currNotif['matchingrule'] = "Not available"
     currNotif['modifytime'] = notificationRow.modifytime
     currNotif['modifytimestr'] = notificationRow.modifytime.strftime("%A, %d-%m-%Y, %H:%M")
+    currNotif['oldcontenttimestr'] = notificationRow.oldcontenttime.strftime("%A, %d-%m-%Y, %H:%M")
     currNotif['currcontent'] = notificationRow.currcontent
     currNotif['oldcontent'] = notificationRow.oldcontent
     # Keep the changes in the json format, as given by the database

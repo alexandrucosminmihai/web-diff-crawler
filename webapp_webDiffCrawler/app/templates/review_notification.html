@@ -22,7 +22,7 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-6">
+    <div class="col-lg-8">
         <table class="table">
           <tbody>
             <tr>
@@ -34,8 +34,12 @@
                 <td>{{ notification['matchingrule'] }}</td>
             </tr>
             <tr>
-                <th scope="row">Modify time</th>
+                <th scope="row">New content time</th>
                 <td>{{ notification['modifytimestr'] }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Old content time</th>
+                <td>{{ notification['oldcontenttimestr'] }}</td>
             </tr>
           </tbody>
         </table>

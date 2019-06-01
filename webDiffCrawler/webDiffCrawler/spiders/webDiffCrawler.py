@@ -75,12 +75,14 @@ class webDiffCrawler(scrapy.Spider):
     def start_requests(self):
         startRequests = []
         currDateTime = datetime.datetime.now()
+        self.sequenceMatcher = difflib.SequenceMatcher()
+        self.session = webDiffCrawler.Session()
+        self.configuration = self.session.query(mappedClasses.Configurations).first()
+
         dailyScheduleBegin = self.configuration.dailyschedulebegin
         dailyScheduleEnd = self.configuration.dailyscheduleend
 
         self.shouldRun = True
-
-        self.configuration = self.session.query(mappedClasses.Configurations).first()
 
         # If the crawler is deactivated
         if self.configuration.runmode == 0:
@@ -104,9 +106,6 @@ class webDiffCrawler(scrapy.Spider):
         if not self.shouldRun:
             self.log("The crawler shouldn't run because it's out of schedule", logging.INFO)
             return startRequests
-
-        self.sequenceMatcher = difflib.SequenceMatcher()
-        self.session = webDiffCrawler.Session()
 
         for crawlingRule in self.session.query(mappedClasses.Crawlingrules).all():
             startRequests.append(scrapy.Request(url=crawlingRule.address, callback=self.parse))
@@ -191,12 +190,12 @@ class webDiffCrawler(scrapy.Spider):
 
                     # Create a new notification and add it to the 'notifications' table
                     recipients = ["all"]
-                    # id_notifications | address | matchingrule | id_matchingrule | modifytime | currcontent | oldcontent | changes | recipients | ackers
                     newNotification = mappedClasses.Notifications(address=crawlingRule.address,
                                                                   id_matchingrule=crawlingRule.id_crawlingrules,
                                                                   modifytime=crawlingRule.lastcrawltime,
                                                                   currcontent=currContent,
                                                                   currdocslinks=json.dumps(currLinks),
+                                                                  oldcontenttime=crawlingRule.lastmodifytime,
                                                                   oldcontent=oldContent,
                                                                   olddocslinks=oldLinks,
                                                                   changes=json.dumps(operations),

@@ -86,6 +86,7 @@ class Notifications(Base):
     modifytime = Column(TIMESTAMP(True))
     currcontent = Column(String)
     currdocslinks = Column(String)
+    oldcontenttime = Column(TIMESTAMP(True))
     oldcontent = Column(String)
     olddocslinks = Column(String)
     changes = Column(String, nullable=False)
