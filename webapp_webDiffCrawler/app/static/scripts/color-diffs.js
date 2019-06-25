@@ -1,11 +1,14 @@
+let newContentContainer = document.getElementById('new-content');
+let oldContentContainer = document.getElementById('old-content');
+
 // let oldcontent = '{{ notification["oldcontent"] | replace("\n", "\\n") | replace("\r", "") }}';
-let oldcontent = '{{ notification["oldcontent"] | safe }}';
+// let oldcontent = '{{ notification["oldcontent"] | safe }}';
+let oldcontent = oldContentContainer.innerHTML;
 
 
 // let currcontent = '{{ notification["currcontent"] | replace("\n", "\\n") | replace("\r", "")}}`;
-let currcontent = '{{ notification["currcontent"] | safe }}';
-
-let changes = JSON.parse('{{ notification["changes"] | safe }}');
+// let currcontent = '{{ notification["currcontent"] | safe }}';
+let currcontent = newContentContainer.innerHTML;
 
 
 console.log(changes);
@@ -33,7 +36,7 @@ colors["yellow"]["before"] = '<span style="background-color: yellow">';
 colors["yellow"]["after"] = '</span>';
 
 // Mark the changes by coloring text
-/*
+
 for (let i = 0; i < changes.length; ++i) {
     // Every change returned from difflib is a 5-tuple
     let currChange = changes[i];
@@ -83,21 +86,15 @@ for (let i = 0; i < changes.length; ++i) {
         oldcontentOffset += colors["red"]["before"].length + colors["red"]["after"].length;
     }
 }
-*/
+
 
 // currcontent = currcontent.replace(/\r?\n/g, "<br />");
 
 
-let newContentContainer = document.getElementById('new-content');
-newContentContainer.innerHTML = '<p>' + currcontent + '</p>';
 
-let oldContentContainer = document.getElementById('old-content');
-oldContentContainer.innerHTML = '<p>' + oldcontent + '</p>';
-
-
-/*
-$(document).ready(function(){
-        $("#new-content").text(currcontent);
-        $("#old-content").text(oldcontent);
+$(document).ready(function() {
+        // $("#new-content").text(currcontent);
+        // $("#new-content").html(currcontent);
+        // $("#old-content").text(oldcontent);
+        // $("#old-content").html(oldcontent);
 });
-*/

@@ -25,6 +25,7 @@ def ackANotification():
         notifToAck = dbSession.query(Notifications).filter_by(id_notifications=notifId).first()
         notifToAck.ackers = list(notifToAck.ackers)
         notifToAck.ackers.append(currentUser)
+
         dbSession.commit()
     return redirect(url_for('main.notifications'))
 
@@ -93,7 +94,11 @@ def reviewNotification(id_notifications):
     currNotif['modifytimestr'] = notificationRow.modifytime.strftime("%A, %d-%m-%Y, %H:%M")
     currNotif['oldcontenttimestr'] = notificationRow.oldcontenttime.strftime("%A, %d-%m-%Y, %H:%M")
     currNotif['currcontent'] = notificationRow.currcontent
+    currNotif['coloredcurrcontent'] = notificationRow.coloredcurrcontent
+    currNotif['detectedreplacedorinserted'] = notificationRow.detectedreplacedorinserted
     currNotif['oldcontent'] = notificationRow.oldcontent
+    currNotif['coloredoldcontent'] = notificationRow.coloredoldcontent
+    currNotif['detecteddeleted'] = notificationRow.detecteddeleted
     # Keep the changes in the json format, as given by the database
     currNotif['changes'] = notificationRow.changes
     if notificationRow.currdocslinks:

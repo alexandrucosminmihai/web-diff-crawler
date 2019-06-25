@@ -4,6 +4,14 @@
     Notif {{ notification['id_notifications'] }} - {{ notification['address'] }}
 {% endblock %}
 
+{% block scripts %}
+    {{ super() }}
+    <script>
+        let changes = JSON.parse('{{ notification["changes"] | safe }}');
+    </script>
+    <!-- <script type="text/javascript" src="/static/scripts/color-diffs.js"></script> -->
+{% endblock %}
+
 {% block page_content %}
 
 <div class="row">
@@ -44,6 +52,12 @@
           </tbody>
         </table>
     </div>
+    <div class="col-lg-2">
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="colorsSwitch" checked>
+          <label class="custom-control-label" for="colorsSwitch">Toggle diff colors</label>
+        </div>
+    </div>
 </div>
 
 <!--
@@ -64,6 +78,32 @@
             </div>
 
             <div class="row">
+<!--                <table class="table">-->
+<!--                    <thead>-->
+<!--                        <tr>-->
+<!--                            <th scope="col">New in current version</th>-->
+<!--                        </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody>-->
+<!--                        <tr>-->
+<!--                            <td>{{ notification["detectedreplacedorinserted"] }}</td>-->
+<!--                        </tr>-->
+<!--                    </tbody>-->
+<!--                </table>-->
+
+                <div class="panel panel-warning">
+                    <button class="btn btn-info btn-warning" type="button" data-toggle="collapse" data-target="#panelBodyDetectedReplacedOrInserted" aria-expanded="true" aria-controls="panelBodyDetectedReplacedOrInserted">
+                        <div class="panel-heading">
+                            New in current version*
+                        </div>
+                    </button>
+                    <div class="panel-body collapse in" id="panelBodyDetectedReplacedOrInserted">
+                        <p> {{ notification["detectedreplacedorinserted"] }} </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 {% if notification["currdocslinks"] %}
                     <h4>Documents download links:</h4>
                     <ul>
@@ -80,7 +120,8 @@
 
             <div class="row">
                 <div class="col-lg-12 col-centered multiline" id="new-content">
-                    {{ notification["currcontent"] | string | safe }}
+                   <!-- {{ notification["currcontent"] | string | safe }} -->
+                    {{ notification["coloredcurrcontent"] | string | safe }}
                 </div>
             </div>
         </div>
@@ -88,6 +129,19 @@
         <div class="col-lg-6"> <!-- Div container Old Content -->
             <div class="row">
                 <h3><u>Old content</u>:</h3>
+            </div>
+
+            <div class="row">
+                <div class="panel panel-danger">
+                    <button class="btn btn-info btn-danger" type="button" data-toggle="collapse" data-target="#panelBodyDetectedDeleted" aria-expanded="true" aria-controls="panelBodyDetectedDeleted">
+                        <div class="panel-heading">
+                            Deleted from old version*
+                        </div>
+                    </button>
+                    <div class="panel-body colapse in" id="panelBodyDetectedDeleted">
+                        <p> {{ notification["detecteddeleted"] }} </p>
+                    </div>
+                </div>
             </div>
 
             <div class="row">
@@ -107,9 +161,10 @@
 
             <div class="row">
                 <div class="col-lg-12 col-centered multiline" id="old-content">
-                    {{ notification["oldcontent"] | string | safe }}
+                    {{ notification["coloredoldcontent"] | string | safe }}
                 </div>
             </div>
+
         </div>
 
     </div> <!-- Comparation row -->

@@ -1,8 +1,17 @@
+"""
+Versiune 1:
+Retin o lista cu pozitiile tag-urilor : index < si index >
+Parcurg toate elementele de diff si elimin bucatiile din diferente care se afla in interiorul tag-urilor
+    Versiune 1.1 O(N * M) 2 for-uri imbricate
+    Versiune 1.2 O(N log M) sau O(M log N) cautare binara
+"""
+
 import scrapy
 
 import difflib
 import logging
 import datetime
+import copy
 import json
 import html
 import re
@@ -17,6 +26,151 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 epsilon = 2
+
+
+def extractTagsIntervals(content):
+    sol = [] # An array of tag intervals (represented as arrays of dim 2)
+    for i in range(len(content)):
+        if content[i] == '<':
+            sol.append([i])
+        elif content[i] == '>':
+            if len(sol) == 0:
+                continue
+            if len(sol[-1]) >= 2:
+                continue
+
+            sol[-1].append(i)
+
+    return sol
+
+
+# Some operations might be removed, some new operations might be created by splitting existing operations
+def removeTagsFromOperations(operations, opStart, opEnd, tagsIntervals):
+    finalOperations = []
+    currOperations = copy.deepcopy(operations)
+
+    globalFoundTag = True
+
+    # Remove parts of operations that regard HTML tags
+    # O(N * M) todo: improve. at least binary search
+    while globalFoundTag:
+        globalFoundTag = False
+        finalOperations = []
+        for operation in currOperations:
+            foundTag = False  # Found intersecting tag for this operation
+            for tag in tagsIntervals:
+                if tag[0] <= operation[opStart] and operation[opEnd] <= tag[1]:  # The whole operation is inside the tag
+                    foundTag = True
+                    globalFoundTag = True
+                    break
+                elif tag[0] >= operation[opStart] and tag[1] <= operation[opEnd]:  # The whole tag is inside the operation
+                    leftOperation = [operation[0], -1, -1, -1, -1]
+                    leftOperation[opStart] = operation[opStart]
+                    leftOperation[opEnd] = tag[0] - 1
+                    #leftOperation = [operation[0], -1, -1, operation[opStart], tag[0] - 1]
+                    rightOperation = [operation[0], -1, -1, -1, -1]
+                    rightOperation[opStart] = tag[1] + 1
+                    rightOperation[opEnd] = operation[opEnd]
+                    #rightOperation = [operation[0], -1, -1, tag[1] + 1, operation[opEnd]]
+                    if leftOperation[opStart] <= leftOperation[opEnd]:
+                        finalOperations.append(leftOperation)
+                    if rightOperation[opStart] <= rightOperation[opEnd]:
+                        finalOperations.append(rightOperation)
+                    foundTag = True
+                    globalFoundTag = True
+                    break
+                elif tag[0] < operation[opStart] and tag[1] >= operation[opStart] and tag[1] <= operation[opEnd]:
+                    newOperation = [operation[0], -1, -1, -1, -1]
+                    newOperation[opStart] = tag[1] + 1
+                    newOperation[opEnd] = operation[opEnd]
+                    #newOperation = [operation[0], -1, -1, tag[1] + 1, operation[opEnd]]
+                    if newOperation[opStart] <= newOperation[opEnd]:
+                        finalOperations.append(newOperation)
+                    foundTag = True
+                    globalFoundTag = True
+                    break
+                elif tag[0] > operation[opStart] and tag[0] <= operation[opEnd]:
+                    #newOperation = [operation[0], -1, -1, operation[opStart], tag[0] - 1]
+                    newOperation = [operation[0], -1, -1, -1, -1]
+                    newOperation[opStart] = operation[opStart]
+                    newOperation[opEnd] = tag[0] - 1
+                    if newOperation[opStart] <= newOperation[opEnd]:
+                        finalOperations.append(newOperation)
+                    foundTag = True
+                    globalFoundTag = True
+                    break
+
+            if not foundTag:
+                finalOperations.append(operation)
+
+        currOperations = finalOperations
+
+    return finalOperations
+
+
+# Add HTML tags for colors inside content, without affecting the differences in HTML tags
+def colorDifferences(newContent, oldContent, operations, newTagsIntervals, oldTagsIntervals):
+    detectedReplacedOrInserted = ""
+    detectedDeleted = ""
+    coloredNewContent = newContent
+    coloredOldContent = oldContent
+    newContentAddedCharsNum = 0
+    oldContentAddedCharsNum = 0
+
+    colors = {}
+    colors["insert"] = {}
+    colors["insert"]["before"] = '<span style="background-color: yellow">' # Maybe use a different color
+    colors["insert"]["after"] = '</span>'
+    colors["insert"]["beforelen"] = len(colors["insert"]["before"])
+    colors["insert"]["afterlen"] = len(colors["insert"]["after"])
+
+    # colors["red"] = {}
+    # colors["red"]["before"] = '<span style="background-color: red">'
+    # colors["red"]["after"] = '</span>'
+    colors["replace"] = {}
+    colors["replace"]["before"] = '<span style="background-color: yellow">'
+    colors["replace"]["after"] = '</span>'
+    colors["replace"]["beforelen"] = len(colors["replace"]["before"])
+    colors["replace"]["afterlen"] = len(colors["replace"]["after"])
+
+    colors["delete"] = {}
+    colors["delete"]["before"] = '<span style="background-color: red">'
+    colors["delete"]["after"] = '</span>'
+    colors["delete"]["beforelen"] = len(colors["delete"]["before"])
+    colors["delete"]["afterlen"] = len(colors["delete"]["after"])
+
+    # Create the colored newContent and extract newly added text
+    finalOperationsNewContent = removeTagsFromOperations(operations, 3, 4, newTagsIntervals)
+
+    for operation in finalOperationsNewContent:
+        start = operation[3] + newContentAddedCharsNum
+        end = operation[4] + newContentAddedCharsNum
+        leftText = coloredNewContent[:start]
+        targetText = coloredNewContent[start:end + 1]
+        rightText = coloredNewContent[end + 1:]
+        if operation[0] in ["insert", "replace"]:
+            coloredNewContent = leftText + colors[operation[0]]["before"] + targetText + colors[operation[0]]["after"] + rightText
+            newContentAddedCharsNum += colors[operation[0]]["beforelen"] + colors[operation[0]]["afterlen"]
+            detectedReplacedOrInserted += targetText
+        # else don't do anything
+
+    # Create the colored oldContent and extract deleted old text
+    finalOperationsOldContent = removeTagsFromOperations(operations, 1, 2, oldTagsIntervals)
+
+    for operation in finalOperationsOldContent:
+        start = operation[1] + oldContentAddedCharsNum
+        end = operation[2] + oldContentAddedCharsNum
+        leftText = coloredOldContent[:start]
+        targetText = coloredOldContent[start:end + 1]
+        rightText = coloredOldContent[end + 1:]
+        if operation[0] in ["delete"]:
+            coloredOldContent = leftText + colors[operation[0]]["before"] + targetText + colors[operation[0]]["after"] + rightText
+            oldContentAddedCharsNum += colors[operation[0]]["beforelen"] + colors[operation[0]]["afterlen"]
+            detectedDeleted += targetText
+        # else don't do anything
+
+    return coloredNewContent, detectedReplacedOrInserted, coloredOldContent, detectedDeleted
+
 
 class webDiffCrawler(scrapy.Spider):
     name = "webDiffCrawler"
@@ -178,6 +332,9 @@ class webDiffCrawler(scrapy.Spider):
                 # If there is some old content to compare the new content to
                 self.sequenceMatcher.set_seqs(oldContent, currContent)
                 operations = []
+                newContentTagsIntervals = extractTagsIntervals(currContent)
+                oldContentTagsIntervals = extractTagsIntervals(oldContent)
+
                 if oldContent:
                     operations = self.sequenceMatcher.get_opcodes()
 
@@ -188,15 +345,37 @@ class webDiffCrawler(scrapy.Spider):
                     self.log("The content for id_crawlingrules=" + str(crawlingRule.id_crawlingrules) +
                              " has changed => New notification issued", logging.INFO)
 
+                    # Update the operations interval indices in order for all the intervals to be closed
+                    for operation in operations:
+                        operation = list(operation)
+                        self.log("Initial Operation: " + str(operation), logging.DEBUG)
+                        operation[2] -= 1
+                        if operation[2] < operation[1]:
+                            operation[2] = operation[1]
+
+                        operation[4] -= 1
+                        if operation[4] < operation[3]:
+                            operation[4] = operation[3]
+
+                        self.log("Final Operation: " + str(operation), logging.DEBUG)
+
+                    # Generate colored HTML code
+                    #coloredCurrContent, detecte = colorDifferences(currContent, operations, tagsIntervals)
+                    coloredCurrContent, detectedReplacedOrInserted, coloredOldContent, detectedDeleted = colorDifferences(currContent, oldContent, operations, newContentTagsIntervals, oldContentTagsIntervals)
+
                     # Create a new notification and add it to the 'notifications' table
                     recipients = ["all"]
                     newNotification = mappedClasses.Notifications(address=crawlingRule.address,
                                                                   id_matchingrule=crawlingRule.id_crawlingrules,
                                                                   modifytime=crawlingRule.lastcrawltime,
                                                                   currcontent=currContent,
+                                                                  coloredcurrcontent=coloredCurrContent,
                                                                   currdocslinks=json.dumps(currLinks),
+                                                                  detectedreplacedorinserted=detectedReplacedOrInserted,
                                                                   oldcontenttime=crawlingRule.lastmodifytime,
                                                                   oldcontent=oldContent,
+                                                                  coloredoldcontent=coloredOldContent,
+                                                                  detecteddeleted=detectedDeleted,
                                                                   olddocslinks=oldLinks,
                                                                   changes=json.dumps(operations),
                                                                   recipients=recipients,

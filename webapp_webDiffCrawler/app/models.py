@@ -85,13 +85,32 @@ class Notifications(Base):
     id_matchingrule = Column(Integer)
     modifytime = Column(TIMESTAMP(True))
     currcontent = Column(String)
+    coloredcurrcontent = Column(String)
     currdocslinks = Column(String)
+    detectedreplacedorinserted = Column(String)
     oldcontenttime = Column(TIMESTAMP(True))
     oldcontent = Column(String)
+    coloredoldcontent = Column(String)
     olddocslinks = Column(String)
+    detecteddeleted = Column(String)
     changes = Column(String, nullable=False)
     recipients = Column(ARRAY(String))
-    ackers = Column(ARRAY(String)) # It's an array in case of future use. Normally should have maximum 1 element
+    ackers = Column(ARRAY(String))  # It's an array in case of future use. Normally should have maximum 1 element
+    # __tablename__ = 'notifications'
+    # id_notifications = Column(Integer, Sequence('notifications_id_notifications_seq'), primary_key=True)
+    # address = Column(String, nullable=False)
+    # # matchingrule = Column(String, nullable=False)
+    # id_matchingrule = Column(Integer)
+    # modifytime = Column(TIMESTAMP(True))
+    # currcontent = Column(String)
+    # coloredcurrcontent = Column(String)
+    # currdocslinks = Column(String)
+    # oldcontenttime = Column(TIMESTAMP(True))
+    # oldcontent = Column(String)
+    # olddocslinks = Column(String)
+    # changes = Column(String, nullable=False)
+    # recipients = Column(ARRAY(String))
+    # ackers = Column(ARRAY(String)) # It's an array in case of future use. Normally should have maximum 1 element
 
     def __repr__(self):
         return "<Notification(id_notifications='%s', address='%s', matchingrule='%s', id_matchingrule='%s'," \
