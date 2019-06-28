@@ -8,6 +8,40 @@
     {{ super() }}
     <script>
         let changes = JSON.parse('{{ notification["changes"] | safe }}');
+        let currContent = document.getElementById("new-content-hidden").innerHTML;
+        let coloredCurrContent = document.getElementById("new-content-colored-hidden").innerHTML;
+        let oldContent = document.getElementById("old-content-hidden").innerHTML;
+        let coloredOldContent = document.getElementById("old-content-colored-hidden").innerHTML;
+        let checkBoxCurrContent = document.getElementById("currContentColorSwitch");
+        let checkBoxOldContent = document.getElementById("oldContentColorSwitch");
+        let divCurrContent = document.getElementById("new-content");
+        let divOldContent = document.getElementById("old-content");
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkBoxCurrContent.checked = true;
+            checkBoxOldContent.checked = true;
+        }, false);
+
+        function switchContentColor() {
+
+            if (checkBoxCurrContent != null && divCurrContent != null) {
+                if (checkBoxCurrContent.checked === true) {
+                    divCurrContent.innerHTML = coloredCurrContent;
+                } else {
+                    divCurrContent.innerHTML = currContent;
+                }
+            }
+
+            if (checkBoxOldContent != null && divOldContent != null) {
+                if (checkBoxOldContent.checked === true) {
+                    divOldContent.innerHTML = coloredOldContent;
+                } else {
+                    divOldContent.innerHTML = oldContent;
+                }
+            }
+
+        }
+
     </script>
     <!-- <script type="text/javascript" src="/static/scripts/color-diffs.js"></script> -->
 {% endblock %}
@@ -54,8 +88,13 @@
     </div>
     <div class="col-lg-2">
         <div class="custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="colorsSwitch" checked>
-          <label class="custom-control-label" for="colorsSwitch">Toggle diff colors</label>
+          <input type="checkbox" class="custom-control-input" id="currContentColorSwitch" onclick="switchContentColor()" checked>
+          <label class="custom-control-label" for="currContentColorSwitch">New content colors</label>
+        </div>
+
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="oldContentColorSwitch" onclick="switchContentColor()" checked>
+          <label class="custom-control-label" for="oldContentColorSwitch">Old content colors</label>
         </div>
     </div>
 </div>
@@ -70,7 +109,7 @@
 <!-- The container with the two smaller containers -->
 <div class="container-fluid">
 
-    <div class="row"> <!-- Comparation row -->
+    <div class="row"> <!-- Comparison row -->
 
         <div class="col-lg-6"> <!-- Div container New Content -->
             <div class="row">
@@ -119,6 +158,12 @@
             </div>
 
             <div class="row">
+                <div id="new-content-hidden" style="display: none;">
+                    {{ notification["currcontent"] | string | safe }}
+                </div>
+                <div id="new-content-colored-hidden" style="display: none;">
+                    {{ notification["coloredcurrcontent"] | string |safe }}
+                </div>
                 <div class="col-lg-12 col-centered multiline" id="new-content">
                    <!-- {{ notification["currcontent"] | string | safe }} -->
                     {{ notification["coloredcurrcontent"] | string | safe }}
@@ -160,6 +205,12 @@
             </div>
 
             <div class="row">
+                <div id="old-content-hidden" style="display: none;">
+                    {{ notification["oldcontent"] | string | safe }}
+                </div>
+                <div id="old-content-colored-hidden" style="display: none;">
+                    {{ notification["coloredoldcontent"] | string | safe }}
+                </div>
                 <div class="col-lg-12 col-centered multiline" id="old-content">
                     {{ notification["coloredoldcontent"] | string | safe }}
                 </div>
@@ -167,7 +218,7 @@
 
         </div>
 
-    </div> <!-- Comparation row -->
+    </div> <!-- Comparison row -->
 
 </div>
 
