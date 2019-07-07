@@ -1,0 +1,1 @@
+from webapp_webDiffCrawler.webapp import app as application
