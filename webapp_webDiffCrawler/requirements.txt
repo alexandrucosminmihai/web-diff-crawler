@@ -83,7 +83,7 @@ SQLAlchemy==1.2.15
 ssh-import-id==5.7
 system-service==0.3
 systemd-python==234
-Twisted==18.9.0
+Twisted==22.2.0
 ubuntu-drivers-common==0.0.0
 ufw==0.36
 unattended-upgrades==0.1
