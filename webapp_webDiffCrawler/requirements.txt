@@ -71,7 +71,7 @@ queuelib==1.5.0
 reportlab==3.4.0
 requests==2.21.0
 requests-unixsocket==0.1.5
-Scrapy==1.5.1
+Scrapy==2.6.1
 scrapyd==1.2.0
 scrapyd-client==1.2.0a1
 SecretStorage==2.3.1
